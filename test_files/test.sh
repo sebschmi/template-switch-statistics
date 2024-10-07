@@ -1,3 +1,3 @@
 #!/bin/bash
 
-cargo run -- test_files/statistics-0.toml test_files/statistics-1.toml
+cargo run -- -o test_files test_files/statistics-*.toml
