@@ -1,0 +1,8 @@
+alignment = [[13, "Match"], [1, "Insertion"], [39, "Match"], [10, { TemplateSwitchEntrance = { primary = "Query", secondary = "Query", first_offset = -9 } }], [13, "Match"], [2, { TemplateSwitchExit = { length_difference = 1 } }], [22, "Match"], [1, "Substitution"], [11, "Match"]]
+cost = 5
+cost_per_base = 0.05
+duration_seconds = 0.014984389
+opened_nodes = 62731
+closed_nodes = 23892
+suboptimal_opened_nodes = 850
+suboptimal_opened_nodes_ratio = 0.013736041757566942
