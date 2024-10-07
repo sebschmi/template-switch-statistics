@@ -2,6 +2,8 @@ use std::path::PathBuf;
 
 use clap::Parser;
 
+mod statistics_file;
+
 #[derive(Parser)]
 struct Cli {
     /// The statistics toml files to use for the plots.

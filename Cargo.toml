@@ -11,5 +11,5 @@ edition = "2021"
 clap = { version = "4.5.19", features = ["derive"] }
 serde = { version = "1.0.210", features = ["derive"] }
 toml = "0.8.19"
-lib_tsalign = { version = "0.3.2", features = ["serde"] }
+lib_tsalign = { version = "0.3.3", features = ["serde"] }
 plotters = "0.3.7"
