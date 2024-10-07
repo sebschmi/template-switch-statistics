@@ -131,8 +131,8 @@ fn grouped_linear_bar_plot<SortKey: Ord>(
         .draw()
         .unwrap();
 
-    for (group, style) in groups
-        .values()
+    for ((group_name, group), style) in groups
+        .iter()
         .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &YELLOW])
     {
         let coordinate_iterator = group.iter().map(&key_fn).zip(group.iter().map(&value_fn));
@@ -141,11 +141,18 @@ fn grouped_linear_bar_plot<SortKey: Ord>(
             .draw_series(LineSeries::new(coordinate_iterator.clone(), style))
             .unwrap();
         chart
-            .draw_series(
-                coordinate_iterator.map(|coordinate| Circle::new(coordinate, 3, style.filled())),
-            )
-            .unwrap();
+            .draw_series(coordinate_iterator.map(|coordinate| Circle::new(coordinate, 3, style)))
+            .unwrap()
+            .label(group_name)
+            .legend(move |(x, y)| Rectangle::new([(x - 5, y - 5), (x + 5, y + 5)], style));
     }
+
+    chart
+        .configure_series_labels()
+        .background_style(WHITE.mix(0.8))
+        .border_style(BLACK)
+        .draw()
+        .unwrap();
 }
 
 fn format_value(value: &f64) -> String {
