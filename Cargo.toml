@@ -1,0 +1,8 @@
+[package]
+name = "template-switch-statistics"
+authors = ["Sebastian Schmidt <sebastian.schmidt@helsinki.fi>"]
+repository = "https://github.com/sebschmi/template-switch-statistics"
+version = "0.0.0"
+edition = "2021"
+
+[dependencies]
