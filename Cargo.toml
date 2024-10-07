@@ -8,3 +8,7 @@ version = "0.0.0"
 edition = "2021"
 
 [dependencies]
+serde = "1.0.210"
+toml = "0.8.19"
+lib_tsalign = "0.3.2"
+plotters = "0.3.7"
