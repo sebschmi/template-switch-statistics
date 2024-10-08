@@ -11,9 +11,12 @@ edition = "2021"
 clap = { version = "4.5.19", features = ["derive"] }
 serde = { version = "1.0.210", features = ["derive"] }
 toml = "0.8.19"
-lib_tsalign = { version = "0.3.4", features = ["serde"] }
+lib_tsalign = { version = "0.4.1", features = ["serde"] }
 plotters = { version = "0.3.7", default-features = false, features = [
     "svg_backend",
     "all_elements",
     "all_series",
 ] }
+noisy_float = { version = "0.2.0", features = ["serde"] }
+log = "0.4.22"
+simplelog = "0.12.2"
