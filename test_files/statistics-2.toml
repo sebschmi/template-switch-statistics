@@ -2,7 +2,7 @@ alignment = [[52, "Match"], [10, { TemplateSwitchEntrance = { primary = "Query",
 cost = 0
 cost_per_base = 0.0
 duration_seconds = 0.000546915
-opened_nodes = 2137
+opened_nodes = 4137
 closed_nodes = 711
 suboptimal_opened_nodes = 82
 suboptimal_opened_nodes_ratio = 0.03990267639902676

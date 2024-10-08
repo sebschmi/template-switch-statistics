@@ -18,6 +18,8 @@ pub struct StatisticsFile {
 pub struct AlignmentParameters {
     pub test_sequence_name: String,
     pub length: usize,
+    #[serde(skip)]
+    pub cost: u64,
     pub seed: u64,
     pub alignment_config: String,
     pub ts_node_ord_strategy: String,
@@ -29,8 +31,16 @@ pub struct MergedStatisticsFile {
     pub max_statistics: AlignmentStatistics,
     pub mean_statistics: AlignmentStatistics,
     pub median_statistics: AlignmentStatistics,
+    pub contained_statistics: Vec<AlignmentStatistics>,
 
     pub parameters: AlignmentParameters,
+}
+
+impl StatisticsFile {
+    pub fn deserialisation_post_processing(mut self) -> Self {
+        self.parameters.cost = self.statistics.statistics.cost.raw() as u64;
+        self
+    }
 }
 
 impl From<Vec<StatisticsFile>> for MergedStatisticsFile {
@@ -48,6 +58,8 @@ impl From<Vec<StatisticsFile>> for MergedStatisticsFile {
                     .collect::<Vec<_>>(),
                 R64::new(0.5),
             ),
+            contained_statistics: Default::default(),
+
             parameters: statistics_files[0].parameters.clone(),
         };
 
@@ -56,6 +68,7 @@ impl From<Vec<StatisticsFile>> for MergedStatisticsFile {
             result.min_statistics = result.min_statistics.piecewise_min(statistics);
             result.max_statistics = result.max_statistics.piecewise_max(statistics);
             result.mean_statistics = result.mean_statistics.piecewise_add(statistics);
+            result.contained_statistics.push(statistics.clone());
         }
 
         result.mean_statistics = result

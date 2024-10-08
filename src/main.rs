@@ -48,18 +48,25 @@ fn main() {
             let mut file = File::open(path).unwrap();
             buffer.clear();
             file.read_to_string(&mut buffer).unwrap();
-            toml::from_str::<StatisticsFile>(&buffer).unwrap()
+            toml::from_str::<StatisticsFile>(&buffer)
+                .unwrap()
+                .deserialisation_post_processing()
         })
         .collect();
 
     grouped_linear_bar_plot(
         &cli.output_directory,
-        "opened_nodes",
+        "opened_nodes_by_cost",
         (400, 400),
         &statistics_files,
-        |file| file.parameters.length,
-        |file| file.parameters.length as f64,
-        |file| file.parameters.test_sequence_name.clone(),
+        |file| file.parameters.cost,
+        |file| file.parameters.cost as f64,
+        |file| {
+            format!(
+                "{} len {}",
+                file.parameters.test_sequence_name, file.parameters.length
+            )
+        },
         |file| {
             let mut parameters = file.parameters.clone();
             parameters.seed = 0;
@@ -111,12 +118,18 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString, SortKey: Ord>(
     root.fill(&TRANSPARENT).unwrap();
 
     info!("Creating chart context with key range {min_key}..{max_key} and max value {max_value}");
+
+    let key_range_len = max_key - min_key;
+    let key_margin = key_range_len / 20.0;
     let mut chart = ChartBuilder::on(&root)
-        .caption(name.to_string(), ("sans-serif", 50).into_font())
+        .caption(name.to_string(), ("sans-serif", 24).into_font())
         .margin(5)
         .x_label_area_size(30)
         .y_label_area_size(30)
-        .build_cartesian_2d(min_key / 1.05..max_key * 1.05, 0.0..max_value * 1.05)
+        .build_cartesian_2d(
+            min_key - key_margin..max_key + key_margin,
+            0.0..max_value as f32 * 1.05,
+        )
         .unwrap();
 
     info!("Configuring chart mesh");
@@ -125,7 +138,7 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString, SortKey: Ord>(
         .disable_x_mesh()
         .x_labels(groups.len())
         .x_label_formatter(&format_value)
-        .y_label_formatter(&format_value)
+        .y_label_formatter(&|value| format_value(&(*value as f64)))
         .draw()
         .unwrap();
 
@@ -134,16 +147,14 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString, SortKey: Ord>(
         .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &YELLOW])
     {
         info!("Drawing group {}", group_name.to_string());
-        let coordinate_iterator = group
-            .iter()
-            .map(&key_fn)
-            .zip(group.iter().map(|file| value_fn(&file.mean_statistics)));
+        let coordinate_iterator = group.iter().map(&key_fn).zip(group.iter());
 
         chart
-            .draw_series(LineSeries::new(coordinate_iterator.clone(), style))
-            .unwrap();
-        chart
-            .draw_series(coordinate_iterator.map(|coordinate| Circle::new(coordinate, 3, style)))
+            .draw_series(coordinate_iterator.map(|(key, file)| {
+                let values: Vec<_> = file.contained_statistics.iter().map(&value_fn).collect();
+                let quartiles = Quartiles::new(&values);
+                Boxplot::new_vertical(key, &quartiles).style(style)
+            }))
             .unwrap()
             .label(group_name.to_string())
             .legend(move |(x, y)| Rectangle::new([(x - 5, y - 5), (x + 5, y + 5)], style));
