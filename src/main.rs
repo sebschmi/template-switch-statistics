@@ -174,12 +174,18 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
         .draw()
         .unwrap();
 
-    for ((group_name, group), style) in groups
+    let key_range = key_bucket_amount
+        .map(|key_bucket_amount| key_range_len / key_bucket_amount as f64)
+        .unwrap_or(1.0);
+    for (group_index, ((group_name, group), style)) in groups
         .iter()
         .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &YELLOW])
+        .enumerate()
     {
         info!("Drawing group {}", group_name.to_string());
         let coordinate_iterator = group.iter().map(|file| file.key.raw()).zip(group.iter());
+        let key_shift = (((group_index as f64 + 0.5) / groups.len() as f64) * key_range * 0.7)
+            - key_range * 0.5 * 0.7;
 
         chart
             .draw_series(coordinate_iterator.map(|(key, file)| {
@@ -194,7 +200,7 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
                             .raw()
                     }
                 }));
-                Boxplot::new_vertical(key, &quartiles).style(style)
+                Boxplot::new_vertical(key + key_shift, &quartiles).style(style)
             }))
             .unwrap()
             .label(group_name.to_string())
