@@ -186,7 +186,7 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
                 let values: Vec<_> = file.contained_statistics.iter().map(&value_fn).collect();
                 let quartiles = Quartiles::new(&values);
                 let quartiles = Quartiles::new(&quartiles.values().map(|value| {
-                    if (value.abs() as f64) < value_epsilon {
+                    if (value as f64) < value_epsilon {
                         0.0
                     } else {
                         R64::new(value as f64)

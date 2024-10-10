@@ -12,7 +12,7 @@ clap = { version = "4.5.19", features = ["derive"] }
 serde = { version = "1.0.210", features = ["derive"] }
 toml = "0.8.19"
 lib_tsalign = { version = "0.4.1", features = ["serde"] }
-plotters = { version = "0.3.7", default-features = false, features = [
+plotters = { version = "0.3.7", git = "https://github.com/sebschmi/plotters", branch = "master", default-features = false, features = [
     "svg_backend",
     "all_elements",
     "all_series",

@@ -378,8 +378,7 @@ checksum = "1261fe7e33c73b354eab43b1273a57c8f967d0391e80353e51f764ac02cf6775"
 [[package]]
 name = "plotters"
 version = "0.3.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5aeb6f403d7a4911efb1e33402027fc44f29b5bf6def3effcc22d7bb75f2b747"
+source = "git+https://github.com/sebschmi/plotters?branch=master#6f3d2e32d3fba298d0c154b1108b4f5427c4cf0f"
 dependencies = [
  "num-traits",
  "plotters-backend",
@@ -391,14 +390,12 @@ dependencies = [
 [[package]]
 name = "plotters-backend"
 version = "0.3.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "df42e13c12958a16b3f7f4386b9ab1f3e7933914ecea48da7139435263a4172a"
+source = "git+https://github.com/sebschmi/plotters?branch=master#6f3d2e32d3fba298d0c154b1108b4f5427c4cf0f"
 
 [[package]]
 name = "plotters-svg"
 version = "0.3.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51bae2ac328883f7acdfea3d66a7c35751187f870bc81f94563733a154d7a670"
+source = "git+https://github.com/sebschmi/plotters?branch=master#6f3d2e32d3fba298d0c154b1108b4f5427c4cf0f"
 dependencies = [
  "plotters-backend",
 ]
