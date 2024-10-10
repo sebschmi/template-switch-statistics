@@ -33,7 +33,7 @@ pub struct MergedStatisticsFile {
     pub median_statistics: AlignmentStatistics,
     pub contained_statistics: Vec<AlignmentStatistics>,
 
-    pub parameters: AlignmentParameters,
+    pub key: R64,
 }
 
 impl StatisticsFile {
@@ -43,8 +43,8 @@ impl StatisticsFile {
     }
 }
 
-impl From<Vec<StatisticsFile>> for MergedStatisticsFile {
-    fn from(statistics_files: Vec<StatisticsFile>) -> Self {
+impl MergedStatisticsFile {
+    pub fn from_statistics_files(key: R64, statistics_files: Vec<StatisticsFile>) -> Self {
         assert!(!statistics_files.is_empty());
 
         let mut result = Self {
@@ -60,7 +60,7 @@ impl From<Vec<StatisticsFile>> for MergedStatisticsFile {
             ),
             contained_statistics: Default::default(),
 
-            parameters: statistics_files[0].parameters.clone(),
+            key,
         };
 
         for statistics in &statistics_files {

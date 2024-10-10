@@ -9,6 +9,7 @@ use std::{
 use clap::Parser;
 use lib_tsalign::a_star_aligner::alignment_result::AlignmentStatistics;
 use log::info;
+use noisy_float::types::R64;
 use plotters::prelude::*;
 use statistics_file::{AlignmentParameters, MergedStatisticsFile, StatisticsFile};
 
@@ -19,6 +20,14 @@ struct Cli {
     /// The directory into which the plots are written.
     #[arg(long, short = 'o')]
     output_directory: PathBuf,
+
+    /// Bucket the experiments by their key (`x`-value).
+    #[arg(long)]
+    key_bucket_amount: Option<usize>,
+
+    /// Make the `y`-axis an n-th-root paxislot with `n = value_polynomial_degree`.
+    #[arg(long, default_value = "1.0")]
+    value_polynomial_degree: f64,
 
     /// The statistics toml files to use for the plots.
     #[arg()]
@@ -39,6 +48,12 @@ fn main() {
     if cli.statistics_files.is_empty() {
         panic!("No statistics files given.");
     }
+    if cli.key_bucket_amount == Some(0) {
+        panic!("If set, key buckets must be at least one.");
+    }
+    if cli.value_polynomial_degree < 1.0 || R64::try_new(cli.value_polynomial_degree).is_none() {
+        panic!("If set, the value polynomial degree must be at least one.");
+    }
 
     let mut buffer = String::new();
     let statistics_files: Vec<_> = cli
@@ -57,10 +72,13 @@ fn main() {
     grouped_linear_bar_plot(
         &cli.output_directory,
         "opened_nodes_by_cost",
+        "Alignment Cost",
+        "Opened Nodes",
         (400, 400),
+        cli.key_bucket_amount,
+        cli.value_polynomial_degree,
         &statistics_files,
-        |file| file.parameters.cost,
-        |file| file.parameters.cost as f64,
+        |parameters| parameters.cost as f64,
         |file| {
             format!(
                 "{} len {}",
@@ -77,58 +95,60 @@ fn main() {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString, SortKey: Ord>(
+fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
     output_directory: impl AsRef<Path>,
     name: impl ToString,
+    key_name: impl ToString,
+    value_name: impl ToString,
     size: (u32, u32),
+    key_bucket_amount: Option<usize>,
+    value_polynomial_degree: f64,
     statistics_files: &[StatisticsFile],
-    sort_key_fn: impl Fn(&MergedStatisticsFile) -> SortKey,
-    key_fn: impl Fn(&MergedStatisticsFile) -> f64,
+    key_fn: impl Fn(&AlignmentParameters) -> f64,
     group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
     merge_key_fn: impl Fn(&StatisticsFile) -> AlignmentParameters,
     value_fn: impl Fn(&AlignmentStatistics) -> f64,
 ) {
     let groups = group_files(statistics_files, group_name_fn);
-    let groups = merge_files_in_groups(groups, merge_key_fn);
-    let groups = sort_groups(groups, sort_key_fn);
+    let (groups, min_key, max_key) =
+        merge_and_sort_files_in_groups(groups, key_bucket_amount, &key_fn, merge_key_fn);
+
+    let (min_value, max_value) = groups
+        .values()
+        .flat_map(|group| group.iter())
+        .map(|file| value_fn(&file.max_statistics))
+        .fold((f64::MAX, 0.0), |(min, max), value| {
+            let min = if min > value { value } else { min };
+            let max = if max < value { value } else { max };
+            (min, max)
+        });
+    let min_chart_value = min_value.powf(1.0 / value_polynomial_degree);
+    let max_chart_value = max_value.powf(1.0 / value_polynomial_degree);
 
     let mut output_file_name = name.to_string();
     output_file_name.push_str(".svg");
     let mut output_file = output_directory.as_ref().to_owned();
     output_file.push(output_file_name);
-
-    let (min_key, max_key) = groups
-        .values()
-        .flat_map(|group| group.iter())
-        .map(&key_fn)
-        .fold((f64::INFINITY, 0.0), |(min, max), value| {
-            (
-                if min < value { min } else { value },
-                if max > value { max } else { value },
-            )
-        });
-    let max_value = groups
-        .values()
-        .flat_map(|group| group.iter())
-        .map(|file| value_fn(&file.max_statistics))
-        .fold(0.0, |acc, value| if acc < value { value } else { acc });
-
     info!("Creating drawing area");
     let root = SVGBackend::new(&output_file, size).into_drawing_area();
     root.fill(&TRANSPARENT).unwrap();
 
-    info!("Creating chart context with key range {min_key}..{max_key} and max value {max_value}");
+    info!("Creating chart context with key range {min_key}..{max_key} and value range {min_chart_value}..{max_chart_value}");
 
     let key_range_len = max_key - min_key;
     let key_margin = key_range_len / 20.0;
+    let chart_value_range_len = max_chart_value - min_chart_value;
+    let chart_value_margin = chart_value_range_len / 20.0;
+
     let mut chart = ChartBuilder::on(&root)
         .caption(name.to_string(), ("sans-serif", 24).into_font())
         .margin(5)
         .x_label_area_size(30)
-        .y_label_area_size(30)
+        .y_label_area_size(45)
         .build_cartesian_2d(
             min_key - key_margin..max_key + key_margin,
-            0.0..max_value as f32 * 1.05,
+            (min_chart_value - chart_value_margin) as f32
+                ..(max_chart_value + chart_value_margin) as f32,
         )
         .unwrap();
 
@@ -138,7 +158,13 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString, SortKey: Ord>(
         .disable_x_mesh()
         .x_labels(groups.len())
         .x_label_formatter(&format_value)
-        .y_label_formatter(&|value| format_value(&(*value as f64)))
+        .y_label_formatter(&|value| format_value(&((*value as f64).powf(value_polynomial_degree))))
+        .x_desc(key_name.to_string())
+        .y_desc(format!(
+            "{} [{}-th root]",
+            value_name.to_string(),
+            value_polynomial_degree
+        ))
         .draw()
         .unwrap();
 
@@ -147,12 +173,17 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString, SortKey: Ord>(
         .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &YELLOW])
     {
         info!("Drawing group {}", group_name.to_string());
-        let coordinate_iterator = group.iter().map(&key_fn).zip(group.iter());
+        let coordinate_iterator = group.iter().map(|file| file.key.raw()).zip(group.iter());
 
         chart
             .draw_series(coordinate_iterator.map(|(key, file)| {
                 let values: Vec<_> = file.contained_statistics.iter().map(&value_fn).collect();
                 let quartiles = Quartiles::new(&values);
+                let quartiles = Quartiles::new(
+                    &quartiles
+                        .values()
+                        .map(|value| (value as f64).powf(1.0 / value_polynomial_degree)),
+                );
                 Boxplot::new_vertical(key, &quartiles).style(style)
             }))
             .unwrap()
@@ -206,19 +237,39 @@ fn group_files<GroupName: Hash + Eq>(
     groups
 }
 
-fn merge_files_in_groups<GroupName: Hash + Eq>(
+fn merge_and_sort_files_in_groups<GroupName: Hash + Eq>(
     groups: HashMap<GroupName, Vec<StatisticsFile>>,
+    key_bucket_amount: Option<usize>,
+    key_fn: impl Fn(&AlignmentParameters) -> f64,
     merge_key_fn: impl Fn(&StatisticsFile) -> AlignmentParameters,
-) -> HashMap<GroupName, Vec<MergedStatisticsFile>> {
+) -> (HashMap<GroupName, Vec<MergedStatisticsFile>>, f64, f64) {
     info!("Merge files in groups");
 
-    let mut merged_groups = HashMap::new();
+    let (min_key, max_key) = groups
+        .values()
+        .flat_map(|group| group.iter())
+        .map(|file| key_fn(&file.parameters))
+        .fold((f64::INFINITY, 0.0), |(min, max), value| {
+            let min = if min > value { value } else { min };
+            let max = if max < value { value } else { max };
+            (min, max)
+        });
+
+    let mut merged_groups: HashMap<_, Vec<MergedStatisticsFile>> = Default::default();
 
     for (group_name, group) in groups {
         let mut merged_group: HashMap<_, Vec<_>> = Default::default();
 
         for file in group {
-            let merge_key = merge_key_fn(&file);
+            let bucket_index = key_bucket_amount.map(|key_bucket_amount| {
+                let key = key_fn(&file.parameters);
+                let bucket_index = (key - min_key) * key_bucket_amount as f64 / (max_key - min_key);
+                (bucket_index.floor() as usize)
+                    .max(0)
+                    .min(key_bucket_amount - 1)
+            });
+
+            let merge_key = (merge_key_fn(&file), bucket_index);
             if let Some(statistics) = merged_group.get_mut(&merge_key) {
                 statistics.push(file);
             } else {
@@ -228,11 +279,25 @@ fn merge_files_in_groups<GroupName: Hash + Eq>(
 
         merged_groups.insert(
             group_name,
-            merged_group.into_values().map(Into::into).collect(),
+            merged_group
+                .into_iter()
+                .map(|((parameters, bucket_index), merge_files)| {
+                    let key = bucket_index
+                        .map(|bucket_index| {
+                            ((bucket_index as f64 + 0.5) / key_bucket_amount.unwrap() as f64
+                                * (max_key - min_key))
+                                + min_key
+                        })
+                        .unwrap_or(key_fn(&parameters));
+                    MergedStatisticsFile::from_statistics_files(R64::new(key), merge_files)
+                })
+                .collect(),
         );
     }
 
-    merged_groups
+    let groups = sort_groups(merged_groups, |file| file.key);
+
+    (groups, min_key, max_key)
 }
 
 fn sort_groups<GroupName: Hash + Eq, SortKey: Ord, StatisticsType>(
@@ -258,10 +323,22 @@ fn format_value(value: &f64) -> String {
         "0".to_string()
     } else if value < 1e3 {
         format!("{:.0}", value)
+    } else if value < 1e4 {
+        format!("{:.2}k", value / 1e3)
+    } else if value < 1e5 {
+        format!("{:.1}k", value / 1e3)
     } else if value < 1e6 {
         format!("{:.0}k", value / 1e3)
+    } else if value < 1e7 {
+        format!("{:.2}M", value / 1e6)
+    } else if value < 1e8 {
+        format!("{:.1}M", value / 1e6)
     } else if value < 1e9 {
         format!("{:.0}M", value / 1e6)
+    } else if value < 1e10 {
+        format!("{:.2}G", value / 1e9)
+    } else if value < 1e11 {
+        format!("{:.1}G", value / 1e9)
     } else if value < 1e12 {
         format!("{:.0}G", value / 1e9)
     } else {
