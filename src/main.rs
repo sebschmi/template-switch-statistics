@@ -89,6 +89,7 @@ fn main() {
         |file| {
             let mut parameters = file.parameters.clone();
             parameters.seed = 0;
+            parameters.cost = 0;
             parameters
         },
         |statistics| statistics.opened_nodes.raw(),
