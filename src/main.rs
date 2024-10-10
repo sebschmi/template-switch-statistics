@@ -179,7 +179,7 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
         .unwrap_or(1.0);
     for (group_index, ((group_name, group), style)) in groups
         .iter()
-        .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &YELLOW])
+        .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &RGBColor(10, 100, 10)])
         .enumerate()
     {
         info!("Drawing group {}", group_name.to_string());
