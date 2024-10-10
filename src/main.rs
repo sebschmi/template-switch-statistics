@@ -123,6 +123,11 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
             let max = if max < value { value } else { max };
             (min, max)
         });
+    let value_epsilon = min_value
+        .abs()
+        .max(max_value.abs())
+        .max(max_value - min_value)
+        * 1e-12;
     let min_chart_value = min_value.powf(1.0 / value_polynomial_degree);
     let max_chart_value = max_value.powf(1.0 / value_polynomial_degree);
 
@@ -181,9 +186,13 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
                 let values: Vec<_> = file.contained_statistics.iter().map(&value_fn).collect();
                 let quartiles = Quartiles::new(&values);
                 let quartiles = Quartiles::new(&quartiles.values().map(|value| {
-                    R64::new(value as f64)
-                        .powf(R64::new(1.0 / value_polynomial_degree))
-                        .raw()
+                    if (value.abs() as f64) < value_epsilon {
+                        0.0
+                    } else {
+                        R64::new(value as f64)
+                            .powf(R64::new(1.0 / value_polynomial_degree))
+                            .raw()
+                    }
                 }));
                 Boxplot::new_vertical(key, &quartiles).style(style)
             }))
