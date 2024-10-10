@@ -9,6 +9,7 @@ use std::{
 use clap::Parser;
 use lib_tsalign::a_star_aligner::alignment_result::AlignmentStatistics;
 use log::info;
+use noisy_float::prelude::Float;
 use noisy_float::types::R64;
 use plotters::prelude::*;
 use statistics_file::{AlignmentParameters, MergedStatisticsFile, StatisticsFile};
@@ -179,11 +180,11 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
             .draw_series(coordinate_iterator.map(|(key, file)| {
                 let values: Vec<_> = file.contained_statistics.iter().map(&value_fn).collect();
                 let quartiles = Quartiles::new(&values);
-                let quartiles = Quartiles::new(
-                    &quartiles
-                        .values()
-                        .map(|value| (value as f64).powf(1.0 / value_polynomial_degree)),
-                );
+                let quartiles = Quartiles::new(&quartiles.values().map(|value| {
+                    R64::new(value as f64)
+                        .powf(R64::new(1.0 / value_polynomial_degree))
+                        .raw()
+                }));
                 Boxplot::new_vertical(key, &quartiles).style(style)
             }))
             .unwrap()
