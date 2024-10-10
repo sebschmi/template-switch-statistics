@@ -1,7 +1,6 @@
 use std::{
-    collections::HashMap,
+    collections::BTreeMap,
     fs::File,
-    hash::Hash,
     io::Read,
     path::{Path, PathBuf},
 };
@@ -97,7 +96,7 @@ fn main() {
 }
 
 #[allow(clippy::too_many_arguments)]
-fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
+fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
     output_directory: impl AsRef<Path>,
     name: impl ToString,
     key_name: impl ToString,
@@ -217,13 +216,13 @@ fn grouped_linear_bar_plot<GroupName: Hash + Eq + ToString>(
         .unwrap();
 }
 
-fn group_files<GroupName: Hash + Eq>(
+fn group_files<GroupName: Ord>(
     statistics_files: &[StatisticsFile],
     group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
-) -> HashMap<GroupName, Vec<StatisticsFile>> {
+) -> BTreeMap<GroupName, Vec<StatisticsFile>> {
     info!("Grouping files");
 
-    let mut groups: HashMap<_, Vec<_>> = Default::default();
+    let mut groups: BTreeMap<_, Vec<_>> = Default::default();
 
     for file in statistics_files {
         let group_name = group_name_fn(file);
@@ -255,12 +254,12 @@ fn group_files<GroupName: Hash + Eq>(
     groups
 }
 
-fn merge_and_sort_files_in_groups<GroupName: Hash + Eq>(
-    groups: HashMap<GroupName, Vec<StatisticsFile>>,
+fn merge_and_sort_files_in_groups<GroupName: Ord>(
+    groups: BTreeMap<GroupName, Vec<StatisticsFile>>,
     key_bucket_amount: Option<usize>,
     key_fn: impl Fn(&AlignmentParameters) -> f64,
     merge_key_fn: impl Fn(&StatisticsFile) -> AlignmentParameters,
-) -> (HashMap<GroupName, Vec<MergedStatisticsFile>>, f64, f64) {
+) -> (BTreeMap<GroupName, Vec<MergedStatisticsFile>>, f64, f64) {
     info!("Merge files in groups");
 
     let (min_key, max_key) = groups
@@ -273,10 +272,10 @@ fn merge_and_sort_files_in_groups<GroupName: Hash + Eq>(
             (min, max)
         });
 
-    let mut merged_groups: HashMap<_, Vec<MergedStatisticsFile>> = Default::default();
+    let mut merged_groups: BTreeMap<_, Vec<MergedStatisticsFile>> = Default::default();
 
     for (group_name, group) in groups {
-        let mut merged_group: HashMap<_, Vec<_>> = Default::default();
+        let mut merged_group: BTreeMap<_, Vec<_>> = Default::default();
 
         for file in group {
             let bucket_index = key_bucket_amount.map(|key_bucket_amount| {
@@ -318,10 +317,10 @@ fn merge_and_sort_files_in_groups<GroupName: Hash + Eq>(
     (groups, min_key, max_key)
 }
 
-fn sort_groups<GroupName: Hash + Eq, SortKey: Ord, StatisticsType>(
-    mut groups: HashMap<GroupName, Vec<StatisticsType>>,
+fn sort_groups<GroupName: Ord, SortKey: Ord, StatisticsType>(
+    mut groups: BTreeMap<GroupName, Vec<StatisticsType>>,
     sort_key_fn: impl Fn(&StatisticsType) -> SortKey,
-) -> HashMap<GroupName, Vec<StatisticsType>> {
+) -> BTreeMap<GroupName, Vec<StatisticsType>> {
     info!("Sort groups");
 
     groups
