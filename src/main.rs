@@ -150,7 +150,7 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
         .caption(name.to_string(), ("sans-serif", 24).into_font())
         .margin(5)
         .x_label_area_size(30)
-        .y_label_area_size(45)
+        .y_label_area_size(50)
         .build_cartesian_2d(
             min_key - key_margin..max_key + key_margin,
             (min_chart_value - chart_value_margin) as f32
