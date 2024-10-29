@@ -11,7 +11,10 @@ use log::info;
 use noisy_float::prelude::Float;
 use noisy_float::types::R64;
 use plotters::prelude::*;
-use statistics_file::{AlignmentParameters, MergedStatisticsFile, StatisticsFile};
+use statistics_file::{
+    alignment_strategies::AlignmentStrategyStringifyer, AlignmentParameters, MergedStatisticsFile,
+    StatisticsFile,
+};
 
 mod statistics_file;
 
@@ -68,11 +71,8 @@ fn main() {
                 .deserialisation_post_processing()
         })
         .collect();
-
-    /*let mut strategy_variants = BTreeMap::new();
-    for statistics_file in &statistics_files {
-        //statistics_file.parameters.
-    }*/
+    let alignment_strategy_stringifier =
+        AlignmentStrategyStringifyer::from_statistics_files(&statistics_files);
 
     grouped_linear_bar_plot(
         &cli.output_directory,
@@ -86,8 +86,10 @@ fn main() {
         |parameters| parameters.cost as f64,
         |file| {
             format!(
-                "{} len {}",
-                file.parameters.test_sequence_name, file.parameters.length
+                "{} len {}{}",
+                file.parameters.test_sequence_name,
+                file.parameters.length,
+                alignment_strategy_stringifier.stringify(file),
             )
         },
         |file| {

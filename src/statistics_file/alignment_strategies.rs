@@ -1,7 +1,13 @@
-use std::{collections::HashMap, hash::Hash};
+use std::{
+    collections::{HashMap, HashSet},
+    fmt::{Display, Write},
+    hash::Hash,
+};
 
 use serde::{Deserialize, Serialize};
 use strum::{EnumIter, IntoEnumIterator};
+
+use super::StatisticsFile;
 
 #[derive(Serialize, Deserialize)]
 pub struct AlignmentStrategiesSerde {
@@ -15,10 +21,61 @@ pub struct AlignmentStrategies {
     map: HashMap<AlignmentStrategyName, String>,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Hash, EnumIter)]
+#[derive(Debug, Clone, Copy, Eq, PartialEq, Ord, PartialOrd, Hash, EnumIter)]
 pub enum AlignmentStrategyName {
     NodeOrd,
     TsMinLength,
+}
+
+pub struct AlignmentStrategyStringifyer {
+    relevant_strategies: Vec<AlignmentStrategyName>,
+}
+
+impl AlignmentStrategyStringifyer {
+    pub fn new<'item>(
+        strategy_selections: impl IntoIterator<Item = &'item AlignmentStrategies>,
+    ) -> Self {
+        let mut existing_strategy_values: HashMap<AlignmentStrategyName, HashSet<String>> =
+            Default::default();
+        for strategy_selection in strategy_selections {
+            for (name, value) in &strategy_selection.map {
+                if let Some(set) = existing_strategy_values.get_mut(name) {
+                    set.insert(value.clone());
+                } else {
+                    existing_strategy_values.insert(*name, [value.clone()].into());
+                }
+            }
+        }
+
+        Self {
+            relevant_strategies: AlignmentStrategyName::iter()
+                .filter(|name| {
+                    existing_strategy_values
+                        .get(name)
+                        .unwrap_or(&HashSet::new())
+                        .len()
+                        > 1
+                })
+                .collect(),
+        }
+    }
+
+    pub fn from_statistics_files(files: &[StatisticsFile]) -> Self {
+        Self::new(files.iter().map(|file| &file.parameters.strategies))
+    }
+
+    pub fn stringify(&self, file: &StatisticsFile) -> String {
+        let mut result = String::new();
+        for name in &self.relevant_strategies {
+            write!(
+                result,
+                "; {name} {}",
+                file.parameters.strategies.map.get(name).unwrap()
+            )
+            .unwrap();
+        }
+        result
+    }
 }
 
 impl Ord for AlignmentStrategies {
@@ -71,8 +128,16 @@ impl From<AlignmentStrategiesSerde> for AlignmentStrategies {
                 (NodeOrd, ts_node_ord_strategy),
                 (TsMinLength, ts_min_length_strategy),
             ]
-            .into_iter()
-            .collect(),
+            .into(),
+        }
+    }
+}
+
+impl Display for AlignmentStrategyName {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            AlignmentStrategyName::NodeOrd => write!(f, "node_ord"),
+            AlignmentStrategyName::TsMinLength => write!(f, "ts_min_len"),
         }
     }
 }
