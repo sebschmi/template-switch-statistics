@@ -69,6 +69,11 @@ fn main() {
         })
         .collect();
 
+    /*let mut strategy_variants = BTreeMap::new();
+    for statistics_file in &statistics_files {
+        //statistics_file.parameters.
+    }*/
+
     grouped_linear_bar_plot(
         &cli.output_directory,
         "opened_nodes_by_cost",

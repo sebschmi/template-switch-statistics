@@ -20,3 +20,4 @@ plotters = { version = "0.3.7", git = "https://github.com/sebschmi/plotters", br
 noisy_float = { version = "0.2.0", features = ["serde"] }
 log = "0.4.22"
 simplelog = "0.12.2"
+strum = { version = "0.26.3", features = ["derive"] }

@@ -1,9 +1,12 @@
+use alignment_strategies::AlignmentStrategies;
 use lib_tsalign::a_star_aligner::{
     alignment_result::{AlignmentResult, AlignmentStatistics},
     template_switch_distance::AlignmentType,
 };
 use noisy_float::types::R64;
 use serde::{Deserialize, Serialize};
+
+pub mod alignment_strategies;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct StatisticsFile {
@@ -22,7 +25,9 @@ pub struct AlignmentParameters {
     pub cost: u64,
     pub seed: u64,
     pub alignment_config: String,
-    pub ts_node_ord_strategy: String,
+
+    #[serde(flatten)]
+    pub strategies: AlignmentStrategies,
 }
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
