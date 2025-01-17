@@ -63,11 +63,11 @@ fn main() {
         .statistics_files
         .into_iter()
         .map(|path| {
-            let mut file = File::open(path).unwrap();
+            let mut file = File::open(&path).unwrap();
             buffer.clear();
             file.read_to_string(&mut buffer).unwrap();
             toml::from_str::<StatisticsFile>(&buffer)
-                .unwrap()
+                .unwrap_or_else(|error| panic!("Error parsing toml file {path:?}: {error}"))
                 .deserialisation_post_processing()
         })
         .collect();
