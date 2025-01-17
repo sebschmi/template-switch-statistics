@@ -43,7 +43,7 @@ pub struct MergedStatisticsFile {
 
 impl StatisticsFile {
     pub fn deserialisation_post_processing(mut self) -> Self {
-        self.parameters.cost = self.statistics.statistics.cost.raw() as u64;
+        self.parameters.cost = self.statistics.statistics().cost.raw() as u64;
         self
     }
 }
@@ -59,7 +59,7 @@ impl MergedStatisticsFile {
             median_statistics: AlignmentStatistics::piecewise_percentile(
                 &statistics_files
                     .iter()
-                    .map(|file| file.statistics.statistics.clone())
+                    .map(|file| file.statistics.statistics().clone())
                     .collect::<Vec<_>>(),
                 R64::new(0.5),
             ),
@@ -69,7 +69,7 @@ impl MergedStatisticsFile {
         };
 
         for statistics in &statistics_files {
-            let statistics = &statistics.statistics.statistics;
+            let statistics = statistics.statistics.statistics();
             result.min_statistics = result.min_statistics.piecewise_min(statistics);
             result.max_statistics = result.max_statistics.piecewise_max(statistics);
             result.mean_statistics = result.mean_statistics.piecewise_add(statistics);
