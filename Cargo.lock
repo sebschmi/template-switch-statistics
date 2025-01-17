@@ -269,9 +269,9 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "lib_tsalign"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b560adff1ed4308d0625e054f2fa4ee7269108c2de3dd87a96c7304d5b130637"
+checksum = "28a8f661b26204a9387c978d1c5c87a09d29a7b010467f47780231ee04885913"
 dependencies = [
  "binary-heap-plus",
  "compact-genome",
