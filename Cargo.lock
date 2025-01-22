@@ -93,9 +93,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "clap"
-version = "4.5.26"
+version = "4.5.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8eb5e908ef3a6efbe1ed62520fb7287959888c88485abe072543190ecc66783"
+checksum = "769b0145982b4b48713e01ec42d61614425f27b7058bda7180a3a41f30104796"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -103,9 +103,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.26"
+version = "4.5.27"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96b01801b5fc6a0a232407abc821660c9c6d25a1cafc0d4f85f29fb8d9afc121"
+checksum = "1b26884eb4b57140e4d2d93652abfa49498b938b3c9179f9fc487b0acc3edad7"
 dependencies = [
  "anstream",
  "anstyle",
@@ -139,15 +139,15 @@ checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
 name = "compact-genome"
-version = "11.0.0"
+version = "12.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "093445cdf891221cc59e5749d34a4091e17f5d1312caddf98a43fd556e7b377b"
+checksum = "09be24ff1271c2659ea6fd6c5c898d1bf65e4796ee9897519f714efa220e94ee"
 dependencies = [
  "bitvec",
  "itertools",
  "lazy_static",
  "ref-cast",
- "thiserror 1.0.69",
+ "thiserror",
  "traitsequence",
 ]
 
@@ -168,9 +168,9 @@ dependencies = [
 
 [[package]]
 name = "deterministic_default_hasher"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "358d920d2b8a0cc3a09adc09f724e3f37c336545ba48c61f30192b31ace0a649"
+checksum = "62f9c573663e16f877b0fa9cd6dfbbf3c9de9d219ff0b7c3c9492abcdbf05b38"
 
 [[package]]
 name = "either"
@@ -186,9 +186,9 @@ checksum = "5443807d6dff69373d433ab9ef5378ad8df50ca6298caf15de6e52e24aaf54d5"
 
 [[package]]
 name = "extend_map"
-version = "0.7.0"
+version = "0.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad74f8002650ab0416392470278be3628e155e9261b3396b9c409ec973f8944a"
+checksum = "3c2127d0bd3d0c18cfe20604867bf7141e8d13df2461cbece466dab7670e5b62"
 
 [[package]]
 name = "funty"
@@ -198,9 +198,9 @@ checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
 name = "generic_a_star"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f21f5b3dcd1b000e4316d005e0208950dd275ff9dba5f7e6891ec22323199086"
+checksum = "f6cfeba8971f48adc2c944fd734abd9db4fc343279a89dc9d804836229b8b33b"
 dependencies = [
  "binary-heap-plus",
  "deterministic_default_hasher",
@@ -222,9 +222,9 @@ checksum = "2304e00983f87ffb38b55b444b5e3b60a884b5d30c0fca7d82fe33449bbe55ea"
 
 [[package]]
 name = "indexmap"
-version = "2.7.0"
+version = "2.7.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "62f822373a4fe84d4bb149bf54e584a7f4abec90e072ed49cda0edea5b95471f"
+checksum = "8c9c992b02b5b4c94ea26e32fe5bccb7aa7d9f390ab5c1221ff895bc7ea8b652"
 dependencies = [
  "equivalent",
  "hashbrown",
@@ -238,9 +238,9 @@ checksum = "7943c866cc5cd64cbc25b2e01621d07fa8eb2a1a23160ee81ce38704e97b8ecf"
 
 [[package]]
 name = "itertools"
-version = "0.13.0"
+version = "0.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "413ee7dfc52ee1a4949ceeb7dbc8a33f2d6c088194d9f922fb8318faf1f01186"
+checksum = "2b192c782037fadd9cfa75548310488aabdbf3d2da73885b31bd0abd03351285"
 dependencies = [
  "either",
 ]
@@ -269,9 +269,9 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "lib_tsalign"
-version = "0.7.1"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "28a8f661b26204a9387c978d1c5c87a09d29a7b010467f47780231ee04885913"
+checksum = "7641acf4b1ec9b89097bebfedf91154b17e525ec6d23bccc045c5d1942843886"
 dependencies = [
  "binary-heap-plus",
  "compact-genome",
@@ -285,7 +285,7 @@ dependencies = [
  "num-traits",
  "seed_chain",
  "serde",
- "thiserror 2.0.11",
+ "thiserror",
  "traitsequence",
 ]
 
@@ -511,9 +511,9 @@ checksum = "f7c45b9784283f1b2e7fb61b42047c2fd678ef0960d4f6f1eba131594cc369d4"
 
 [[package]]
 name = "seed_chain"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f76b541a8c19bfd285d14113694f82de947d983816139389f6441edd522576ea"
+checksum = "b59c30b4e1a25703e576d4129e1d248a81ce7da85c7a5107254a20548a16095b"
 dependencies = [
  "compact-genome",
  "generic_a_star",
@@ -631,31 +631,11 @@ dependencies = [
 
 [[package]]
 name = "thiserror"
-version = "1.0.69"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6aaf5339b578ea85b50e080feb250a3e8ae8cfcdff9a461c9ec2904bc923f52"
-dependencies = [
- "thiserror-impl 1.0.69",
-]
-
-[[package]]
-name = "thiserror"
 version = "2.0.11"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d452f284b73e6d76dd36758a0c8684b1d5be31f92b89d07fd5822175732206fc"
 dependencies = [
- "thiserror-impl 2.0.11",
-]
-
-[[package]]
-name = "thiserror-impl"
-version = "1.0.69"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fee6c4efc90059e10f81e6d42c60a18f76588c3d74cb83a0b242a2b6c7504c1"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
+ "thiserror-impl",
 ]
 
 [[package]]
