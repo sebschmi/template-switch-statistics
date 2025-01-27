@@ -83,10 +83,20 @@ fn main() {
                 .deserialisation_post_processing()
         })
         .collect();
+    let all_statistics_files_amount = statistics_files.len();
     let alignment_strategy_stringifier =
         AlignmentStrategyStringifyer::from_statistics_files(&statistics_files);
 
     if cli.tsalign {
+        let statistics_files: Vec<_> = statistics_files
+            .iter()
+            .filter(|file| file.parameters.aligner == "tsalign")
+            .cloned()
+            .collect();
+        if all_statistics_files_amount != statistics_files.len() {
+            warn!("Dropping some statistics files for tsalign report.");
+        }
+
         grouped_linear_bar_plot(
             &cli.output_directory,
             "opened_nodes_by_cost",
@@ -116,7 +126,6 @@ fn main() {
     }
 
     if cli.ari_email {
-        let all_statistics_files_amount = statistics_files.len();
         let statistics_files: Vec<_> = statistics_files
             .iter()
             .filter(|file| {
