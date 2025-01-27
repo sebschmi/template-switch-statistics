@@ -88,6 +88,7 @@ fn main() {
         AlignmentStrategyStringifyer::from_statistics_files(&statistics_files);
 
     if cli.tsalign {
+        info!("Reporting tsalign");
         let statistics_files: Vec<_> = statistics_files
             .iter()
             .filter(|file| file.parameters.aligner == "tsalign")
@@ -126,6 +127,7 @@ fn main() {
     }
 
     if cli.ari_email {
+        info!("Reporting ari email");
         let statistics_files: Vec<_> = statistics_files
             .iter()
             .filter(|file| {
