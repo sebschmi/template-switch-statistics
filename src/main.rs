@@ -131,7 +131,8 @@ fn main() {
         let statistics_files: Vec<_> = statistics_files
             .iter()
             .filter(|file| {
-                file.parameters.strategies.is_ari_email() || file.parameters.aligner == "fpa"
+                (file.parameters.strategies.is_ari_email() || file.parameters.aligner == "fpa")
+                    && file.parameters.test_sequence_name == "ari_email"
             })
             .cloned()
             .collect();
