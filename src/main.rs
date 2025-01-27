@@ -7,9 +7,9 @@ use std::{
 
 use clap::Parser;
 use lib_tsalign::a_star_aligner::alignment_result::AlignmentStatistics;
-use log::info;
-use noisy_float::prelude::Float;
+use log::{info, warn, LevelFilter};
 use noisy_float::types::R64;
+use noisy_float::{prelude::Float, types::r64};
 use plotters::prelude::*;
 use statistics_file::{
     alignment_strategies::AlignmentStrategyStringifyer, AlignmentParameters, MergedStatisticsFile,
@@ -35,18 +35,30 @@ struct Cli {
     /// The statistics toml files to use for the plots.
     #[arg()]
     statistics_files: Vec<PathBuf>,
+
+    /// Set the log level.
+    #[arg(long, default_value = "info")]
+    log_level: LevelFilter,
+
+    /// Compute tsalign statistics.
+    #[arg(long)]
+    tsalign: bool,
+
+    /// Compute ari email statistics.
+    #[arg(long)]
+    ari_email: bool,
 }
 
 fn main() {
+    let cli = Cli::parse();
+
     simplelog::TermLogger::init(
-        log::LevelFilter::Info,
+        cli.log_level,
         Default::default(),
         simplelog::TerminalMode::Mixed,
         simplelog::ColorChoice::Auto,
     )
     .unwrap();
-
-    let cli = Cli::parse();
 
     if cli.statistics_files.is_empty() {
         panic!("No statistics files given.");
@@ -74,32 +86,94 @@ fn main() {
     let alignment_strategy_stringifier =
         AlignmentStrategyStringifyer::from_statistics_files(&statistics_files);
 
-    grouped_linear_bar_plot(
-        &cli.output_directory,
-        "opened_nodes_by_cost",
-        "Alignment Cost",
-        "Opened Nodes",
-        (400, 400),
-        cli.key_bucket_amount,
-        cli.value_polynomial_degree,
-        &statistics_files,
-        |parameters| parameters.cost as f64,
-        |file| {
-            format!(
-                "{} len {}{}",
-                file.parameters.test_sequence_name,
-                file.parameters.length,
-                alignment_strategy_stringifier.stringify(file),
-            )
-        },
-        |file| {
-            let mut parameters = file.parameters.clone();
-            parameters.seed = 0;
-            parameters.cost = 0;
-            parameters
-        },
-        |statistics| statistics.opened_nodes.raw(),
-    );
+    if cli.tsalign {
+        grouped_linear_bar_plot(
+            &cli.output_directory,
+            "opened_nodes_by_cost",
+            "Alignment Cost",
+            "Opened Nodes",
+            (400, 400),
+            cli.key_bucket_amount,
+            cli.value_polynomial_degree,
+            &statistics_files,
+            |parameters| parameters.cost as f64,
+            |file| {
+                format!(
+                    "{} len {}{}",
+                    file.parameters.test_sequence_name,
+                    file.parameters.length,
+                    alignment_strategy_stringifier.stringify(file),
+                )
+            },
+            |file| {
+                let mut parameters = file.parameters.clone();
+                parameters.seed = 0;
+                parameters.cost = 0;
+                parameters
+            },
+            |statistics| statistics.opened_nodes.raw(),
+        );
+    }
+
+    if cli.ari_email {
+        let all_statistics_files_amount = statistics_files.len();
+        let statistics_files: Vec<_> = statistics_files
+            .iter()
+            .filter(|file| {
+                file.parameters.strategies.is_ari_email() || file.parameters.aligner == "fpa"
+            })
+            .cloned()
+            .collect();
+        if all_statistics_files_amount != statistics_files.len() {
+            warn!("Dropping some statistics files for ari email report.");
+        }
+
+        grouped_linear_bar_plot(
+            &cli.output_directory,
+            "runtime",
+            "All",
+            "Runtime [s]",
+            (400, 400),
+            None,
+            1.0,
+            &statistics_files,
+            |_| 0.0,
+            |file| file.parameters.aligner.clone(),
+            |file| {
+                let mut parameters = file.parameters.clone();
+                parameters.seed = 0;
+                parameters.cost = 0;
+                parameters.runtime_raw.clear();
+                parameters.memory_raw = 0;
+                parameters.strategies = Default::default();
+                parameters
+            },
+            |statistics| statistics.runtime.raw(),
+        );
+
+        grouped_linear_bar_plot(
+            &cli.output_directory,
+            "memory",
+            "All",
+            "Peak RAM [MiB]",
+            (400, 400),
+            None,
+            1.0,
+            &statistics_files,
+            |_| 0.0,
+            |file| file.parameters.aligner.clone(),
+            |file| {
+                let mut parameters = file.parameters.clone();
+                parameters.seed = 0;
+                parameters.cost = 0;
+                parameters.runtime_raw.clear();
+                parameters.memory_raw = 0;
+                parameters.strategies = Default::default();
+                parameters
+            },
+            |statistics| (statistics.memory / r64(1024.0 * 1024.0)).raw(),
+        );
+    }
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -173,11 +247,15 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
         .x_label_formatter(&format_value)
         .y_label_formatter(&|value| format_value(&((*value as f64).powf(value_polynomial_degree))))
         .x_desc(key_name.to_string())
-        .y_desc(format!(
-            "{} [{}-th root]",
-            value_name.to_string(),
-            value_polynomial_degree
-        ))
+        .y_desc(if value_polynomial_degree != 1.0 {
+            format!(
+                "{} [{}-th root]",
+                value_name.to_string(),
+                value_polynomial_degree
+            )
+        } else {
+            value_name.to_string()
+        })
         .draw()
         .unwrap();
 
@@ -189,14 +267,27 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
         .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &RGBColor(10, 100, 10)])
         .enumerate()
     {
+        if group.is_empty() {
+            info!(
+                "Skipping group {} because it is empty",
+                group_name.to_string()
+            );
+            continue;
+        }
+
         info!("Drawing group {}", group_name.to_string());
         let coordinate_iterator = group.iter().map(|file| file.key.raw()).zip(group.iter());
         let key_shift = (((group_index as f64 + 0.5) / groups.len() as f64) * key_range * 0.7)
             - key_range * 0.5 * 0.7;
 
         chart
-            .draw_series(coordinate_iterator.map(|(key, file)| {
+            .draw_series(coordinate_iterator.filter_map(|(key, file)| {
                 let values: Vec<_> = file.contained_statistics.iter().map(&value_fn).collect();
+
+                if values.is_empty() {
+                    return None;
+                }
+
                 let quartiles = Quartiles::new(&values);
                 let quartiles = Quartiles::new(&quartiles.values().map(|value| {
                     if (value as f64) < value_epsilon {
@@ -207,7 +298,7 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
                             .raw()
                     }
                 }));
-                Boxplot::new_vertical(key + key_shift, &quartiles).style(style)
+                Some(Boxplot::new_vertical(key + key_shift, &quartiles).style(style))
             }))
             .unwrap()
             .label(group_name.to_string())
@@ -223,7 +314,7 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
         .unwrap();
 }
 
-fn group_files<GroupName: Ord>(
+fn group_files<GroupName: Ord + ToString>(
     statistics_files: &[StatisticsFile],
     group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
 ) -> BTreeMap<GroupName, Vec<StatisticsFile>> {
@@ -249,7 +340,15 @@ fn group_files<GroupName: Ord>(
                 |(len, truth), group| (len, truth && group.len() == len)
             )
             .1,
-        "groups are not of equal size"
+        "groups are not of equal size:\n{}",
+        {
+            use std::fmt::Write;
+            let mut result = String::new();
+            for (group_name, group) in groups.iter() {
+                writeln!(result, "{}: {}", group_name.to_string(), group.len()).unwrap();
+            }
+            result
+        }
     );
 
     info!(
@@ -282,6 +381,7 @@ fn merge_and_sort_files_in_groups<GroupName: Ord>(
     let mut merged_groups: BTreeMap<_, Vec<MergedStatisticsFile>> = Default::default();
 
     for (group_name, group) in groups {
+        assert!(!group.is_empty());
         let mut merged_group: BTreeMap<_, Vec<_>> = Default::default();
 
         for file in group {
@@ -306,6 +406,7 @@ fn merge_and_sort_files_in_groups<GroupName: Ord>(
             merged_group
                 .into_iter()
                 .map(|((parameters, bucket_index), merge_files)| {
+                    assert!(!merge_files.is_empty());
                     let key = bucket_index
                         .map(|bucket_index| {
                             ((bucket_index as f64 + 0.5) / key_bucket_amount.unwrap() as f64

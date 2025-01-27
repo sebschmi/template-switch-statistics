@@ -11,11 +11,13 @@ use super::StatisticsFile;
 
 #[derive(Serialize, Deserialize)]
 pub struct AlignmentStrategiesSerde {
+    #[serde(default)]
     ts_node_ord_strategy: String,
+    #[serde(default)]
     ts_min_length_strategy: String,
 }
 
-#[derive(Debug, Clone, Eq, PartialEq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Default, Eq, PartialEq, Serialize, Deserialize)]
 #[serde(from = "AlignmentStrategiesSerde", into = "AlignmentStrategiesSerde")]
 pub struct AlignmentStrategies {
     map: HashMap<AlignmentStrategyName, String>,
@@ -75,6 +77,20 @@ impl AlignmentStrategyStringifyer {
             .unwrap();
         }
         result
+    }
+}
+
+impl AlignmentStrategies {
+    pub fn is_ari_email(&self) -> bool {
+        self.map
+            .get(&AlignmentStrategyName::NodeOrd)
+            .map(String::as_str)
+            == Some("anti-diagonal")
+            && self
+                .map
+                .get(&AlignmentStrategyName::TsMinLength)
+                .map(String::as_str)
+                == Some("lookahead")
     }
 }
 

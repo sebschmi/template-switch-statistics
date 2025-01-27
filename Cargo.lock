@@ -198,9 +198,9 @@ checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
 name = "generic_a_star"
-version = "0.8.1"
+version = "0.8.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2014d9b823f230e4bc5642ed7918d69bc1e45799b86fc9724e7fda7d32bf77fe"
+checksum = "41a9b370e290aecbbbeb233f093ad20e494e5dffe2762c0c3652483d2dc26d40"
 dependencies = [
  "binary-heap-plus",
  "deterministic_default_hasher",
@@ -269,9 +269,9 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "lib_tsalign"
-version = "0.8.1"
+version = "0.8.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "602564e0abe44b79cd68c11df6c7b85f511b6f87b5f333525e89d5ef5f1313fa"
+checksum = "c7b35d608a283aea8a4adac25cc33011db33817d05c8aacf3845e5beb709c66e"
 dependencies = [
  "binary-heap-plus",
  "compact-genome",
