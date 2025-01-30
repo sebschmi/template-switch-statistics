@@ -11,7 +11,7 @@ edition = "2021"
 clap = { version = "4.5.27", features = ["derive"] }
 serde = { version = "1.0.217", features = ["derive"] }
 toml = "0.8.19"
-lib_tsalign = { version = "0.8.8", features = ["serde"] }
+lib_tsalign = { version = "0.8.9", features = ["serde"] }
 plotters = { version = "0.3.7", git = "https://github.com/sebschmi/plotters", branch = "master", default-features = false, features = [
     "svg_backend",
     "all_elements",
