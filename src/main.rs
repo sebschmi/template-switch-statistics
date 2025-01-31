@@ -7,7 +7,7 @@ use std::{
 
 use clap::Parser;
 use lib_tsalign::a_star_aligner::alignment_result::AlignmentStatistics;
-use log::{info, warn, LevelFilter};
+use log::{debug, info, warn, LevelFilter};
 use noisy_float::types::R64;
 use noisy_float::{prelude::Float, types::r64};
 use plotters::prelude::*;
@@ -333,6 +333,7 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
                             .raw()
                     }
                 }));
+                debug!("Drawing boxplot at x = {}", key + key_shift);
                 Some(Boxplot::new_vertical(key + key_shift, &quartiles).style(style))
             }))
             .unwrap()
