@@ -185,6 +185,29 @@ fn main() {
             },
             |statistics| (statistics.memory / r64(1024.0 * 1024.0)).raw(),
         );
+
+        grouped_linear_bar_plot(
+            &cli.output_directory,
+            "ts_amount",
+            "All",
+            "Template Switch Amount",
+            (400, 400),
+            None,
+            1.0,
+            &statistics_files,
+            |_| 0.0,
+            |file| file.parameters.aligner.clone(),
+            |file| {
+                let mut parameters = file.parameters.clone();
+                parameters.seed = 0;
+                parameters.cost = 0;
+                parameters.runtime_raw.clear();
+                parameters.memory_raw = 0;
+                parameters.strategies = Default::default();
+                parameters
+            },
+            |statistics| statistics.template_switch_amount.raw(),
+        );
     }
 }
 
