@@ -255,15 +255,18 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
     let root = SVGBackend::new(&output_file, size).into_drawing_area();
     root.fill(&TRANSPARENT).unwrap();
 
+    let (min_key, max_key) = if min_key == max_key {
+        debug!("All keys are the same.");
+        let min_key = min_key - 0.5;
+        let max_key = max_key + 0.5;
+        (min_key, max_key)
+    } else {
+        (min_key, max_key)
+    };
+
     info!("Creating chart context with key range {min_key}..{max_key} and value range {min_chart_value}..{max_chart_value}");
 
     let key_range_len = max_key - min_key;
-    let key_range_len = if key_range_len == 0.0 {
-        1.0
-    } else {
-        key_range_len
-    };
-
     let key_margin = key_range_len / 20.0;
     let chart_value_range_len = max_chart_value - min_chart_value;
     let chart_value_margin = chart_value_range_len / 20.0;
