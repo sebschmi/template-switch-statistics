@@ -258,6 +258,12 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
     info!("Creating chart context with key range {min_key}..{max_key} and value range {min_chart_value}..{max_chart_value}");
 
     let key_range_len = max_key - min_key;
+    let key_range_len = if key_range_len == 0.0 {
+        1.0
+    } else {
+        key_range_len
+    };
+
     let key_margin = key_range_len / 20.0;
     let chart_value_range_len = max_chart_value - min_chart_value;
     let chart_value_margin = chart_value_range_len / 20.0;
