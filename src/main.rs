@@ -1,5 +1,5 @@
 use std::{
-    collections::BTreeMap,
+    collections::{BTreeMap, HashMap},
     fs::File,
     io::Read,
     path::{Path, PathBuf},
@@ -188,7 +188,7 @@ fn main() {
 
         grouped_linear_bar_plot(
             &cli.output_directory,
-            "ts_amount",
+            "ts_amount_boxplot",
             "All",
             "Template Switch Amount",
             (400, 400),
@@ -208,10 +208,36 @@ fn main() {
             },
             |statistics| statistics.template_switch_amount.raw(),
         );
+
+        grouped_histogram(
+            &cli.output_directory,
+            "ts_amount_histogram",
+            "Template Switch Amount",
+            (400, 400),
+            &statistics_files,
+            &[
+                (-0.5, 0.5),
+                (0.5, 1.5),
+                (1.5, 2.5),
+                (2.5, 3.5),
+                (3.5, 4.5),
+                (4.5, 5.5),
+                (5.5, 6.5),
+                (6.5, 7.5),
+            ],
+            |file| {
+                file.statistics
+                    .statistics()
+                    .template_switch_amount
+                    .raw()
+                    .round() as i64
+            },
+            |file| file.parameters.aligner.clone(),
+        );
     }
 }
 
-#[allow(clippy::too_many_arguments)]
+#[expect(clippy::too_many_arguments)]
 fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
     output_directory: impl AsRef<Path>,
     name: impl ToString,
@@ -514,4 +540,102 @@ fn format_value(value: &f64) -> String {
     } else {
         todo!("Support larger values");
     }
+}
+
+#[expect(clippy::too_many_arguments)]
+fn grouped_histogram<GroupName: Ord + ToString>(
+    output_directory: impl AsRef<Path>,
+    name: impl ToString,
+    key_name: impl ToString,
+    size: (u32, u32),
+    statistics_files: &[StatisticsFile],
+    bucket_intervals: &[(f64, f64)],
+    key_fn: impl Fn(&StatisticsFile) -> i64,
+    group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
+) {
+    let groups = group_files(statistics_files, group_name_fn);
+
+    for group in groups.values() {
+        let mut m: HashMap<_, usize> = HashMap::new();
+        for key in group.iter().map(key_fn) {
+            *m.entry(key).or_default() += 1;
+        }
+    }
+
+    let (min_key, max_key) = groups
+        .values()
+        .flat_map(|group| group.iter())
+        .map(|file| key_fn(file))
+        .fold((i64::MAX, i64::MIN), |(min, max), value| {
+            let min = if min > value { value } else { min };
+            let max = if max < value { value } else { max };
+            (min, max)
+        });
+
+    let mut output_file_name = name.to_string();
+    output_file_name.push_str(".svg");
+    let mut output_file = output_directory.as_ref().to_owned();
+    output_file.push(output_file_name);
+    info!("Creating drawing area");
+    let root = SVGBackend::new(&output_file, size).into_drawing_area();
+    root.fill(&TRANSPARENT).unwrap();
+
+    let key_margin = 1;
+
+    let mut chart = ChartBuilder::on(&root)
+        .caption(name.to_string(), ("sans-serif", 24).into_font())
+        .margin(5)
+        .x_label_area_size(30)
+        .y_label_area_size(50)
+        .build_cartesian_2d(
+            min_key - key_margin..max_key + key_margin,
+            (min_chart_value - chart_value_margin) as f32
+                ..(max_chart_value + chart_value_margin) as f32,
+        )
+        .unwrap();
+
+    info!("Configuring chart mesh");
+    chart
+        .configure_mesh()
+        .disable_x_mesh()
+        .x_labels(groups.len())
+        .x_label_formatter(&format_value)
+        .y_label_formatter(&|value| format_value(&((*value as f64).powf(value_polynomial_degree))))
+        .x_desc(key_name.to_string())
+        .y_desc(if value_polynomial_degree != 1.0 {
+            format!(
+                "{} [{}-th root]",
+                value_name.to_string(),
+                value_polynomial_degree
+            )
+        } else {
+            value_name.to_string()
+        })
+        .draw()
+        .unwrap();
+
+    for ((group_name, statistics_files), style) in
+        groups
+            .iter()
+            .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &RGBColor(10, 100, 10)])
+    {
+        chart
+            .draw_series(
+                Histogram::vertical(&chart)
+                    .style(BLUE.filled())
+                    .margin(10)
+                    .data(statistics_files.iter().map(&key_fn).map(|x| (x, 1))),
+            )
+            .unwrap()
+            .label(group_name.to_string())
+            .legend(move |(x, y)| Rectangle::new([(x - 5, y - 5), (x + 5, y + 5)], style));
+    }
+
+    chart
+        .configure_series_labels()
+        .background_style(WHITE.mix(0.8))
+        .border_style(BLACK)
+        .position(SeriesLabelPosition::LowerRight)
+        .draw()
+        .unwrap();
 }
