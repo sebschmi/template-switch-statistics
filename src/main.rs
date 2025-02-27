@@ -650,7 +650,7 @@ fn grouped_histogram<GroupName: Ord + ToString>(
         .configure_series_labels()
         .background_style(WHITE.mix(0.8))
         .border_style(BLACK)
-        .position(SeriesLabelPosition::LowerRight)
+        .position(SeriesLabelPosition::UpperRight)
         .draw()
         .unwrap();
 }
