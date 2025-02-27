@@ -1,4 +1,41 @@
-alignment = [[13, "Match"], [1, "Insertion"], [39, "Match"], [10, { TemplateSwitchEntrance = { primary = "Query", secondary = "Query", first_offset = -9 } }], [13, "Match"], [2, { TemplateSwitchExit = { length_difference = 1 } }], [22, "Match"], [1, "Substitution"], [11, "Match"]]
+alignment = [
+    [
+        13,
+        "Match",
+    ],
+    [
+        1,
+        "Insertion",
+    ],
+    [
+        39,
+        "Match",
+    ],
+    [
+        10,
+        { TemplateSwitchEntrance = { primary = "Query", secondary = "Query", first_offset = -9 } },
+    ],
+    [
+        13,
+        "Match",
+    ],
+    [
+        2,
+        { TemplateSwitchExit = { length_difference = 1 } },
+    ],
+    [
+        22,
+        "Match",
+    ],
+    [
+        1,
+        "Substitution",
+    ],
+    [
+        11,
+        "Match",
+    ],
+]
 cost = 5
 cost_per_base = 0.05
 duration_seconds = 0.015921083
@@ -12,3 +49,5 @@ seed = 0
 alignment_config = "default"
 ts_node_ord_strategy = "anti-diagonal"
 ts_min_length_strategy = "lookahead"
+
+template_switch_amount = 1

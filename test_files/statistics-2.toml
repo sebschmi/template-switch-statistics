@@ -12,3 +12,5 @@ seed = 0
 alignment_config = "default"
 ts_node_ord_strategy = "anti-diagonal"
 ts_min_length_strategy = "lookahead"
+
+template_switch_amount = 4

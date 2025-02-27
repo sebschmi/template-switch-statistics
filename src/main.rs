@@ -554,6 +554,7 @@ fn grouped_histogram<GroupName: Ord + ToString>(
     group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
 ) {
     let groups = group_files(statistics_files, group_name_fn);
+    let group_amount = groups.len() as f32;
     let mut group_histograms = BTreeMap::new();
 
     for (group_name, group) in groups {
@@ -564,14 +565,16 @@ fn grouped_histogram<GroupName: Ord + ToString>(
 
         let mut histogram: Vec<_> = aggregated.into_iter().collect();
         histogram.sort_unstable_by_key(|(key, _)| *key);
+        debug!("{}: {histogram:?}", group_name.to_string());
         group_histograms.insert(group_name, histogram);
     }
+    let group_histograms = group_histograms;
 
     let (min_key, max_key, min_value, max_value) = group_histograms
         .values()
         .flat_map(|group| group.iter())
         .fold(
-            (i64::MAX, i64::MIN, f32::INFINITY, f32::NEG_INFINITY),
+            (i64::MAX, i64::MIN, 0.0, f32::NEG_INFINITY),
             |(min_key, max_key, min_value, max_value), &(key, value)| {
                 let min_key = if min_key > key { key } else { min_key };
                 let max_key = if max_key < key { key } else { max_key };
@@ -589,8 +592,16 @@ fn grouped_histogram<GroupName: Ord + ToString>(
     let root = SVGBackend::new(&output_file, size).into_drawing_area();
     root.fill(&TRANSPARENT).unwrap();
 
-    let key_margin = 1;
-    let value_margin = ((max_value - min_value) * 0.05).round();
+    let key_margin = 0.6;
+    let value_margin = (max_value - min_value) * 0.05;
+    debug!(
+        "Key range: {}..{}; margin: {}",
+        min_key, max_key, key_margin
+    );
+    debug!(
+        "Value range: {}..{}; margin: {}",
+        min_value, max_value, value_margin
+    );
 
     let mut chart = ChartBuilder::on(&root)
         .caption(name.to_string(), ("sans-serif", 24).into_font())
@@ -598,7 +609,7 @@ fn grouped_histogram<GroupName: Ord + ToString>(
         .x_label_area_size(30)
         .y_label_area_size(50)
         .build_cartesian_2d(
-            min_key - key_margin..max_key + key_margin,
+            (min_key as f32 - key_margin)..(max_key as f32 + key_margin),
             (min_value - value_margin)..(max_value + value_margin),
         )
         .unwrap();
@@ -615,18 +626,21 @@ fn grouped_histogram<GroupName: Ord + ToString>(
         .draw()
         .unwrap();
 
-    for ((group_name, histogram), style) in
-        group_histograms
-            .iter()
-            .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &RGBColor(10, 100, 10)])
+    for (group_index, ((group_name, histogram), style)) in group_histograms
+        .iter()
+        .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &RGBColor(10, 100, 10)])
+        .enumerate()
     {
+        let key_range = 0.7;
+        let group_index = group_index as f32;
+        let key_shift = ((group_index / group_amount) * key_range) - key_range * 0.5;
+        let style = style.filled();
+
         chart
-            .draw_series(
-                Histogram::vertical(&chart)
-                    .style(BLUE.filled())
-                    .margin(10)
-                    .data(histogram.iter().copied()),
-            )
+            .draw_series(histogram.iter().copied().map(|(key, value)| {
+                let key = key as f32 + key_shift;
+                Rectangle::new([(key, 0.0), (key + key_range / group_amount, value)], style)
+            }))
             .unwrap()
             .label(group_name.to_string())
             .legend(move |(x, y)| Rectangle::new([(x - 5, y - 5), (x + 5, y + 5)], style));
