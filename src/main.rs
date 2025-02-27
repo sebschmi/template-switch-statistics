@@ -549,28 +549,37 @@ fn grouped_histogram<GroupName: Ord + ToString>(
     key_name: impl ToString,
     size: (u32, u32),
     statistics_files: &[StatisticsFile],
-    bucket_intervals: &[(f64, f64)],
+    #[expect(unused)] bucket_intervals: &[(f64, f64)],
     key_fn: impl Fn(&StatisticsFile) -> i64,
     group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
 ) {
     let groups = group_files(statistics_files, group_name_fn);
+    let mut group_histograms = BTreeMap::new();
 
-    for group in groups.values() {
-        let mut m: HashMap<_, usize> = HashMap::new();
-        for key in group.iter().map(key_fn) {
-            *m.entry(key).or_default() += 1;
+    for (group_name, group) in groups {
+        let mut aggregated: HashMap<_, f32> = HashMap::new();
+        for key in group.iter().map(&key_fn) {
+            *aggregated.entry(key).or_default() += 1.0;
         }
+
+        let mut histogram: Vec<_> = aggregated.into_iter().collect();
+        histogram.sort_unstable_by_key(|(key, _)| *key);
+        group_histograms.insert(group_name, histogram);
     }
 
-    let (min_key, max_key) = groups
+    let (min_key, max_key, min_value, max_value) = group_histograms
         .values()
         .flat_map(|group| group.iter())
-        .map(|file| key_fn(file))
-        .fold((i64::MAX, i64::MIN), |(min, max), value| {
-            let min = if min > value { value } else { min };
-            let max = if max < value { value } else { max };
-            (min, max)
-        });
+        .fold(
+            (i64::MAX, i64::MIN, f32::INFINITY, f32::NEG_INFINITY),
+            |(min_key, max_key, min_value, max_value), &(key, value)| {
+                let min_key = if min_key > key { key } else { min_key };
+                let max_key = if max_key < key { key } else { max_key };
+                let min_value = if min_value > value { value } else { min_value };
+                let max_value = if max_value < value { value } else { max_value };
+                (min_key, max_key, min_value, max_value)
+            },
+        );
 
     let mut output_file_name = name.to_string();
     output_file_name.push_str(".svg");
@@ -581,6 +590,7 @@ fn grouped_histogram<GroupName: Ord + ToString>(
     root.fill(&TRANSPARENT).unwrap();
 
     let key_margin = 1;
+    let value_margin = ((max_value - min_value) * 0.05).round();
 
     let mut chart = ChartBuilder::on(&root)
         .caption(name.to_string(), ("sans-serif", 24).into_font())
@@ -589,8 +599,7 @@ fn grouped_histogram<GroupName: Ord + ToString>(
         .y_label_area_size(50)
         .build_cartesian_2d(
             min_key - key_margin..max_key + key_margin,
-            (min_chart_value - chart_value_margin) as f32
-                ..(max_chart_value + chart_value_margin) as f32,
+            (min_value - value_margin)..(max_value + value_margin),
         )
         .unwrap();
 
@@ -598,24 +607,16 @@ fn grouped_histogram<GroupName: Ord + ToString>(
     chart
         .configure_mesh()
         .disable_x_mesh()
-        .x_labels(groups.len())
-        .x_label_formatter(&format_value)
-        .y_label_formatter(&|value| format_value(&((*value as f64).powf(value_polynomial_degree))))
+        .x_labels(group_histograms.len())
+        .x_label_formatter(&|value| format_value(&(*value as f64)))
+        .y_label_formatter(&|value| format_value(&(*value as f64)))
         .x_desc(key_name.to_string())
-        .y_desc(if value_polynomial_degree != 1.0 {
-            format!(
-                "{} [{}-th root]",
-                value_name.to_string(),
-                value_polynomial_degree
-            )
-        } else {
-            value_name.to_string()
-        })
+        .y_desc("Frequency".to_string())
         .draw()
         .unwrap();
 
-    for ((group_name, statistics_files), style) in
-        groups
+    for ((group_name, histogram), style) in
+        group_histograms
             .iter()
             .zip([&RED, &GREEN, &BLUE, &MAGENTA, &CYAN, &RGBColor(10, 100, 10)])
     {
@@ -624,7 +625,7 @@ fn grouped_histogram<GroupName: Ord + ToString>(
                 Histogram::vertical(&chart)
                     .style(BLUE.filled())
                     .margin(10)
-                    .data(statistics_files.iter().map(&key_fn).map(|x| (x, 1))),
+                    .data(histogram.iter().copied()),
             )
             .unwrap()
             .label(group_name.to_string())
