@@ -6,7 +6,7 @@ use std::{
 };
 
 use clap::Parser;
-use lib_tsalign::a_star_aligner::alignment_result::AlignmentStatistics;
+use lib_tsalign::{a_star_aligner::alignment_result::AlignmentStatistics, costs::U64Cost};
 use log::{debug, info, warn, LevelFilter};
 use noisy_float::types::R64;
 use noisy_float::{prelude::Float, types::r64};
@@ -250,7 +250,7 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
     key_fn: impl Fn(&AlignmentParameters) -> f64,
     group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
     merge_key_fn: impl Fn(&StatisticsFile) -> AlignmentParameters,
-    value_fn: impl Fn(&AlignmentStatistics) -> f64,
+    value_fn: impl Fn(&AlignmentStatistics<U64Cost>) -> f64,
 ) {
     let groups = group_files(statistics_files, group_name_fn);
     let (groups, min_key, max_key) =

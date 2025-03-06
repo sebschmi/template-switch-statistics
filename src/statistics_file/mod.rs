@@ -1,7 +1,10 @@
 use alignment_strategies::AlignmentStrategies;
-use lib_tsalign::a_star_aligner::{
-    alignment_result::{AlignmentResult, AlignmentStatistics},
-    template_switch_distance::AlignmentType,
+use lib_tsalign::{
+    a_star_aligner::{
+        alignment_result::{AlignmentResult, AlignmentStatistics},
+        template_switch_distance::AlignmentType,
+    },
+    costs::U64Cost,
 };
 use noisy_float::types::{r64, R64};
 use serde::{Deserialize, Serialize};
@@ -11,13 +14,13 @@ pub mod alignment_strategies;
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd, Serialize, Deserialize)]
 pub struct StatisticsFile {
     #[serde(default = "default_statistics")]
-    pub statistics: AlignmentResult<AlignmentType>,
+    pub statistics: AlignmentResult<AlignmentType, U64Cost>,
 
     #[serde(flatten)]
     pub parameters: AlignmentParameters,
 }
 
-fn default_statistics() -> AlignmentResult<AlignmentType> {
+fn default_statistics() -> AlignmentResult<AlignmentType, U64Cost> {
     AlignmentResult::WithoutTarget {
         statistics: AlignmentStatistics::zero(),
     }
@@ -44,11 +47,11 @@ pub struct AlignmentParameters {
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
 pub struct MergedStatisticsFile {
-    pub min_statistics: AlignmentStatistics,
-    pub max_statistics: AlignmentStatistics,
-    pub mean_statistics: AlignmentStatistics,
-    pub median_statistics: AlignmentStatistics,
-    pub contained_statistics: Vec<AlignmentStatistics>,
+    pub min_statistics: AlignmentStatistics<U64Cost>,
+    pub max_statistics: AlignmentStatistics<U64Cost>,
+    pub mean_statistics: AlignmentStatistics<U64Cost>,
+    pub median_statistics: AlignmentStatistics<U64Cost>,
+    pub contained_statistics: Vec<AlignmentStatistics<U64Cost>>,
 
     pub key: R64,
 }
