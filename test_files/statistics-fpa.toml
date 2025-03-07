@@ -1,0 +1,7 @@
+test_sequence_name = "ari_email"
+aligner = "fpa"
+length = 0
+seed = 387
+runtime_raw = ['0:00.02', '0:00.01']
+memory_raw = 4576
+template_switch_amount = 1
