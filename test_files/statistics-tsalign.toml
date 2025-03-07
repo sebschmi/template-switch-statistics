@@ -1,0 +1,27 @@
+test_sequence_name = "ari_email"
+aligner = "tsalign"
+length = 0
+seed = 387
+alignment_config = "default"
+ts_node_ord_strategy = "anti-diagonal"
+ts_min_length_strategy = "lookahead"
+runtime_raw = ["0:23.81"]
+memory_raw = 194320
+template_switch_amount = 0
+[statistics]
+type = "WithTarget"
+alignment = [[500, "PrimaryMatch"], [10, { TemplateSwitchEntrance = { primary = "Reference", secondary = "Query", first_offset = -9 } }], [10, "SecondaryMatch"], [5, { TemplateSwitchExit = { length_difference = -4 } }], [505, "PrimaryMatch"]]
+cost = 2.0
+cost_per_base = 0.0019743336623889436
+duration_seconds = 23.789405369
+opened_nodes = 766439.0
+closed_nodes = 381258.0
+suboptimal_opened_nodes = 327.0
+suboptimal_opened_nodes_ratio = 0.000426830541748465
+template_switch_amount = 1.0
+runtime = 0.0
+memory = 0.0
+
+[statistics.result]
+astar_result_type = "FoundTarget"
+cost = 2

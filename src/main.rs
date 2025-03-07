@@ -85,9 +85,10 @@ fn main() {
         .collect();
 
     for statistics_file in &statistics_files {
-        if statistics_file.parameters.aligner == "fpa" && statistics_file.parameters.seed == 387 {
+        if statistics_file.parameters.seed == 387 {
             info!(
-                "fpa-387 ts amount: {}",
+                "ari-387 {} ts amount: {}",
+                statistics_file.parameters.aligner,
                 statistics_file
                     .statistics
                     .statistics()

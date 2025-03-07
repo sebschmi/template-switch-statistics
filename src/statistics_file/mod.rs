@@ -18,6 +18,9 @@ pub struct StatisticsFile {
 
     #[serde(flatten)]
     pub parameters: AlignmentParameters,
+
+    #[serde(default)]
+    pub template_switch_amount: u64,
 }
 
 fn default_statistics() -> AlignmentResult<AlignmentType, U64Cost> {
@@ -61,6 +64,7 @@ impl StatisticsFile {
         self.parameters.cost = self.statistics.statistics().cost.raw() as u64;
         self.unpack_runtime();
         self.unpack_memory();
+        self.fix_template_switch_amount();
         self
     }
 
@@ -85,6 +89,14 @@ impl StatisticsFile {
     fn unpack_memory(&mut self) {
         self.statistics.statistics_mut().memory =
             r64(self.parameters.memory_raw as f64) * r64(1024.0);
+    }
+
+    fn fix_template_switch_amount(&mut self) {
+        if self.template_switch_amount > 0 {
+            assert_eq!(self.statistics.statistics_mut().template_switch_amount, 0.0);
+            self.statistics.statistics_mut().template_switch_amount =
+                r64(self.template_switch_amount as f64);
+        }
     }
 }
 
