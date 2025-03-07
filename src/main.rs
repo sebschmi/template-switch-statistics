@@ -83,6 +83,19 @@ fn main() {
                 .deserialisation_post_processing()
         })
         .collect();
+
+    for statistics_file in &statistics_files {
+        if statistics_file.parameters.aligner == "fpa" && statistics_file.parameters.seed == 387 {
+            info!(
+                "fpa-387 ts amount: {}",
+                statistics_file
+                    .statistics
+                    .statistics()
+                    .template_switch_amount
+            );
+        }
+    }
+
     let all_statistics_files_amount = statistics_files.len();
     let alignment_strategy_stringifier =
         AlignmentStrategyStringifyer::from_statistics_files(&statistics_files);
@@ -553,6 +566,7 @@ fn grouped_histogram<GroupName: Ord + ToString>(
     key_fn: impl Fn(&StatisticsFile) -> i64,
     group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
 ) {
+    info!("Creating grouped histogram");
     let groups = group_files(statistics_files, group_name_fn);
     let group_amount = groups.len() as f32;
     let mut group_histograms = BTreeMap::new();
