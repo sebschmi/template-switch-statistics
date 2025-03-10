@@ -292,8 +292,9 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
     let mut output_file = output_directory.as_ref().to_owned();
     output_file.push(output_file_name);
     info!("Creating drawing area");
-    let root = SVGBackend::new(&output_file, size).into_drawing_area();
-    root.fill(&TRANSPARENT).unwrap();
+    let root: DrawingArea<SVGBackend<'_>, plotters::coord::Shift> =
+        SVGBackend::new(&output_file, size).into_drawing_area();
+    root.fill(&WHITE).unwrap();
 
     let (min_key, max_key) = if min_key == max_key {
         debug!("All keys are the same.");
@@ -605,7 +606,7 @@ fn grouped_histogram<GroupName: Ord + ToString>(
     output_file.push(output_file_name);
     info!("Creating drawing area");
     let root = SVGBackend::new(&output_file, size).into_drawing_area();
-    root.fill(&TRANSPARENT).unwrap();
+    root.fill(&WHITE).unwrap();
 
     let key_margin = 0.6;
     let value_margin = (max_value - min_value) * 0.05;
