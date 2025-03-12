@@ -5,17 +5,19 @@ use std::{
     path::{Path, PathBuf},
 };
 
+use axis_transform::AxisTransform;
 use clap::Parser;
 use lib_tsalign::{a_star_aligner::alignment_result::AlignmentStatistics, costs::U64Cost};
 use log::{debug, info, warn, LevelFilter};
+use noisy_float::types::r64;
 use noisy_float::types::R64;
-use noisy_float::{prelude::Float, types::r64};
 use plotters::prelude::*;
 use statistics_file::{
     alignment_strategies::AlignmentStrategyStringifyer, AlignmentParameters, MergedStatisticsFile,
     StatisticsFile,
 };
 
+mod axis_transform;
 mod statistics_file;
 
 #[derive(Parser)]
@@ -119,7 +121,9 @@ fn main() {
             "Opened Nodes",
             (400, 400),
             cli.key_bucket_amount,
-            cli.value_polynomial_degree,
+            AxisTransform::PolynomialRoot {
+                degree: cli.value_polynomial_degree,
+            },
             &statistics_files,
             |parameters| parameters.cost as f64,
             |file| {
@@ -161,7 +165,7 @@ fn main() {
             "Runtime [s]",
             (400, 400),
             None,
-            1.0,
+            AxisTransform::Log,
             &statistics_files,
             |_| 0.0,
             |file| file.parameters.aligner.clone(),
@@ -184,7 +188,7 @@ fn main() {
             "Peak RAM [MiB]",
             (400, 400),
             None,
-            1.0,
+            AxisTransform::Log,
             &statistics_files,
             |_| 0.0,
             |file| file.parameters.aligner.clone(),
@@ -207,7 +211,7 @@ fn main() {
             "Template Switch Amount",
             (400, 400),
             None,
-            1.0,
+            AxisTransform::Linear,
             &statistics_files,
             |_| 0.0,
             |file| file.parameters.aligner.clone(),
@@ -259,7 +263,7 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
     value_name: impl ToString,
     size: (u32, u32),
     key_bucket_amount: Option<usize>,
-    value_polynomial_degree: f64,
+    value_transform: AxisTransform,
     statistics_files: &[StatisticsFile],
     key_fn: impl Fn(&AlignmentParameters) -> f64,
     group_name_fn: impl Fn(&StatisticsFile) -> GroupName,
@@ -284,8 +288,8 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
         .max(max_value.abs())
         .max(max_value - min_value)
         * 1e-12;
-    let min_chart_value = min_value.powf(1.0 / value_polynomial_degree);
-    let max_chart_value = max_value.powf(1.0 / value_polynomial_degree);
+    let min_chart_value = value_transform.apply(min_value);
+    let max_chart_value = value_transform.apply(max_value);
 
     let mut output_file_name = name.to_string();
     output_file_name.push_str(".svg");
@@ -330,17 +334,9 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
         .disable_x_mesh()
         .x_labels(groups.len())
         .x_label_formatter(&format_value)
-        .y_label_formatter(&|value| format_value(&((*value as f64).powf(value_polynomial_degree))))
+        .y_label_formatter(&|value| format_value(&value_transform.apply_inverse(*value as f64)))
         .x_desc(key_name.to_string())
-        .y_desc(if value_polynomial_degree != 1.0 {
-            format!(
-                "{} [{}-th root]",
-                value_name.to_string(),
-                value_polynomial_degree
-            )
-        } else {
-            value_name.to_string()
-        })
+        .y_desc(format!("{} [{}]", value_name.to_string(), value_transform))
         .draw()
         .unwrap();
 
@@ -378,9 +374,7 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
                     if (value as f64) < value_epsilon {
                         0.0
                     } else {
-                        R64::new(value as f64)
-                            .powf(R64::new(1.0 / value_polynomial_degree))
-                            .raw()
+                        value_transform.apply(value as f64)
                     }
                 }));
                 debug!("Drawing boxplot at x = {}", key + key_shift);
