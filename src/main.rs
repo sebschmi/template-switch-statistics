@@ -8,13 +8,13 @@ use std::{
 use axis_transform::AxisTransform;
 use clap::Parser;
 use lib_tsalign::{a_star_aligner::alignment_result::AlignmentStatistics, costs::U64Cost};
-use log::{debug, info, warn, LevelFilter};
-use noisy_float::types::r64;
+use log::{LevelFilter, debug, info, warn};
 use noisy_float::types::R64;
+use noisy_float::types::r64;
 use plotters::prelude::*;
 use statistics_file::{
-    alignment_strategies::AlignmentStrategyStringifyer, AlignmentParameters, MergedStatisticsFile,
-    StatisticsFile,
+    AlignmentParameters, MergedStatisticsFile, StatisticsFile,
+    alignment_strategies::AlignmentStrategyStringifyer,
 };
 
 mod axis_transform;
@@ -309,7 +309,9 @@ fn grouped_linear_bar_plot<GroupName: Ord + ToString>(
         (min_key, max_key)
     };
 
-    info!("Creating chart context with key range {min_key}..{max_key} and value range {min_chart_value}..{max_chart_value}");
+    info!(
+        "Creating chart context with key range {min_key}..{max_key} and value range {min_chart_value}..{max_chart_value}"
+    );
 
     let key_range_len = max_key - min_key;
     let key_margin = key_range_len / 20.0;

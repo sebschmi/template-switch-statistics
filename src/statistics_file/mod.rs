@@ -6,7 +6,7 @@ use lib_tsalign::{
     },
     costs::U64Cost,
 };
-use noisy_float::types::{r64, R64};
+use noisy_float::types::{R64, r64};
 use serde::{Deserialize, Serialize};
 
 pub mod alignment_strategies;
