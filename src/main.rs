@@ -1,5 +1,5 @@
 use std::{
-    collections::{BTreeMap, HashMap},
+    collections::{BTreeMap, BTreeSet, HashMap},
     fs::File,
     io::{BufWriter, Read},
     path::{Path, PathBuf},
@@ -119,7 +119,9 @@ fn main() {
         info!("Reporting tsalign");
         let statistics_files: Vec<_> = statistics_files
             .iter()
-            .filter(|file| file.parameters.aligner == "tsalign")
+            .filter(|file| {
+                file.parameters.aligner == "tsalign" && file.parameters.rq_range == "all"
+            })
             .cloned()
             .collect();
         if all_statistics_files_amount != statistics_files.len() {
@@ -158,112 +160,120 @@ fn main() {
 
     if cli.ari_email {
         info!("Reporting ari email");
-        let statistics_files: Vec<_> = statistics_files
+        let rq_ranges: BTreeSet<_> = statistics_files
             .iter()
-            .filter(|file| {
-                (file.parameters.strategies.is_ari_email() || file.parameters.aligner == "fpa")
-                    && file.parameters.test_sequence_name == "ari_email"
-            })
-            .cloned()
+            .map(|statistics_file| &statistics_file.parameters.rq_range)
             .collect();
-        if all_statistics_files_amount != statistics_files.len() {
-            warn!("Dropping some statistics files for ari email report.");
+
+        for rq_range in rq_ranges {
+            let statistics_files: Vec<_> = statistics_files
+                .iter()
+                .filter(|file| {
+                    (file.parameters.strategies.is_ari_email() || file.parameters.aligner == "fpa")
+                        && file.parameters.test_sequence_name == "ari_email"
+                        && &file.parameters.rq_range == rq_range
+                })
+                .cloned()
+                .collect();
+            if all_statistics_files_amount != statistics_files.len() {
+                warn!("Dropping some statistics files for ari email report.");
+            }
+
+            grouped_linear_bar_plot(
+                &cli.output_directory,
+                format!("runtime-{rq_range}"),
+                "All",
+                "Runtime [s]",
+                (400, 400),
+                None,
+                AxisTransform::Log,
+                &statistics_files,
+                |_| 0.0,
+                |file| file.parameters.aligner.clone(),
+                |file| {
+                    let mut parameters = file.parameters.clone();
+                    parameters.seed = 0;
+                    parameters.cost = 0;
+                    parameters.runtime_raw.clear();
+                    parameters.memory_raw = 0;
+                    parameters.strategies = Default::default();
+                    parameters
+                },
+                |statistics| statistics.runtime.raw(),
+            );
+
+            grouped_linear_bar_plot(
+                &cli.output_directory,
+                format!("memory-{rq_range}"),
+                "All",
+                "Peak RAM [MiB]",
+                (400, 400),
+                None,
+                AxisTransform::Log,
+                &statistics_files,
+                |_| 0.0,
+                |file| file.parameters.aligner.clone(),
+                |file| {
+                    let mut parameters = file.parameters.clone();
+                    parameters.seed = 0;
+                    parameters.cost = 0;
+                    parameters.runtime_raw.clear();
+                    parameters.memory_raw = 0;
+                    parameters.strategies = Default::default();
+                    parameters
+                },
+                |statistics| (statistics.memory / r64(1024.0 * 1024.0)).raw(),
+            );
+
+            grouped_linear_bar_plot(
+                &cli.output_directory,
+                format!("ts_amount_boxplot-{rq_range}"),
+                "All",
+                "Template Switch Amount",
+                (400, 400),
+                None,
+                AxisTransform::Linear,
+                &statistics_files,
+                |_| 0.0,
+                |file| file.parameters.aligner.clone(),
+                |file| {
+                    let mut parameters = file.parameters.clone();
+                    parameters.seed = 0;
+                    parameters.cost = 0;
+                    parameters.runtime_raw.clear();
+                    parameters.memory_raw = 0;
+                    parameters.strategies = Default::default();
+                    parameters
+                },
+                |statistics| statistics.template_switch_amount.raw(),
+            );
+
+            grouped_histogram(
+                &cli.output_directory,
+                format!("ts_amount_histogram-{rq_range}"),
+                "Template Switch Amount",
+                (400, 400),
+                &statistics_files,
+                &[
+                    (-0.5, 0.5),
+                    (0.5, 1.5),
+                    (1.5, 2.5),
+                    (2.5, 3.5),
+                    (3.5, 4.5),
+                    (4.5, 5.5),
+                    (5.5, 6.5),
+                    (6.5, 7.5),
+                ],
+                |file| {
+                    file.statistics
+                        .statistics()
+                        .template_switch_amount
+                        .raw()
+                        .round() as i64
+                },
+                |file| file.parameters.aligner.clone(),
+            );
         }
-
-        grouped_linear_bar_plot(
-            &cli.output_directory,
-            "runtime",
-            "All",
-            "Runtime [s]",
-            (400, 400),
-            None,
-            AxisTransform::Log,
-            &statistics_files,
-            |_| 0.0,
-            |file| file.parameters.aligner.clone(),
-            |file| {
-                let mut parameters = file.parameters.clone();
-                parameters.seed = 0;
-                parameters.cost = 0;
-                parameters.runtime_raw.clear();
-                parameters.memory_raw = 0;
-                parameters.strategies = Default::default();
-                parameters
-            },
-            |statistics| statistics.runtime.raw(),
-        );
-
-        grouped_linear_bar_plot(
-            &cli.output_directory,
-            "memory",
-            "All",
-            "Peak RAM [MiB]",
-            (400, 400),
-            None,
-            AxisTransform::Log,
-            &statistics_files,
-            |_| 0.0,
-            |file| file.parameters.aligner.clone(),
-            |file| {
-                let mut parameters = file.parameters.clone();
-                parameters.seed = 0;
-                parameters.cost = 0;
-                parameters.runtime_raw.clear();
-                parameters.memory_raw = 0;
-                parameters.strategies = Default::default();
-                parameters
-            },
-            |statistics| (statistics.memory / r64(1024.0 * 1024.0)).raw(),
-        );
-
-        grouped_linear_bar_plot(
-            &cli.output_directory,
-            "ts_amount_boxplot",
-            "All",
-            "Template Switch Amount",
-            (400, 400),
-            None,
-            AxisTransform::Linear,
-            &statistics_files,
-            |_| 0.0,
-            |file| file.parameters.aligner.clone(),
-            |file| {
-                let mut parameters = file.parameters.clone();
-                parameters.seed = 0;
-                parameters.cost = 0;
-                parameters.runtime_raw.clear();
-                parameters.memory_raw = 0;
-                parameters.strategies = Default::default();
-                parameters
-            },
-            |statistics| statistics.template_switch_amount.raw(),
-        );
-
-        grouped_histogram(
-            &cli.output_directory,
-            "ts_amount_histogram",
-            "Template Switch Amount",
-            (400, 400),
-            &statistics_files,
-            &[
-                (-0.5, 0.5),
-                (0.5, 1.5),
-                (1.5, 2.5),
-                (2.5, 3.5),
-                (3.5, 4.5),
-                (4.5, 5.5),
-                (5.5, 6.5),
-                (6.5, 7.5),
-            ],
-            |file| {
-                file.statistics
-                    .statistics()
-                    .template_switch_amount
-                    .raw()
-                    .round() as i64
-            },
-            |file| file.parameters.aligner.clone(),
-        );
     }
 }
 

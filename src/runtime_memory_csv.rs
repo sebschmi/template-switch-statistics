@@ -10,11 +10,15 @@ pub fn output_runtime_memory_csv<'input>(
     let columns: &[(_, Box<dyn Fn(&StatisticsFile) -> String>)] = &[
         (
             "aligner",
-            Box::new(|statistics_file: &StatisticsFile| statistics_file.parameters.aligner.clone()),
+            Box::new(|statistics_file| statistics_file.parameters.aligner.clone()),
+        ),
+        (
+            "rq_range",
+            Box::new(|statistics_file| statistics_file.parameters.rq_range.clone()),
         ),
         (
             "runtime_seconds",
-            Box::new(|statistics_file: &StatisticsFile| {
+            Box::new(|statistics_file| {
                 format!("{}", statistics_file.statistics.statistics().runtime)
             }),
         ),
