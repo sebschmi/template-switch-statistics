@@ -4,7 +4,7 @@ description = "Compute statistics for experiments with tsalign"
 license = "BSD-2-Clause"
 authors = ["Sebastian Schmidt <sebastian.schmidt@helsinki.fi>"]
 repository = "https://github.com/sebschmi/template-switch-statistics"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2024"
 
 [dependencies]
