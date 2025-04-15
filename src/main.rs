@@ -1,7 +1,7 @@
 use std::{
     collections::{BTreeMap, HashMap},
     fs::File,
-    io::Read,
+    io::{BufWriter, Read},
     path::{Path, PathBuf},
 };
 
@@ -12,12 +12,14 @@ use log::{LevelFilter, debug, info, warn};
 use noisy_float::types::R64;
 use noisy_float::types::r64;
 use plotters::prelude::*;
+use runtime_memory_csv::output_runtime_memory_csv;
 use statistics_file::{
     AlignmentParameters, MergedStatisticsFile, StatisticsFile,
     alignment_strategies::AlignmentStrategyStringifyer,
 };
 
 mod axis_transform;
+mod runtime_memory_csv;
 mod statistics_file;
 
 #[derive(Parser)]
@@ -25,6 +27,10 @@ struct Cli {
     /// The directory into which the plots are written.
     #[arg(long, short = 'o')]
     output_directory: PathBuf,
+
+    /// Output the runtime and memory statistics into a CSV file.
+    #[arg(long)]
+    runtime_memory_csv: Option<PathBuf>,
 
     /// Bucket the experiments by their key (`x`-value).
     #[arg(long)]
@@ -102,6 +108,12 @@ fn main() {
     let all_statistics_files_amount = statistics_files.len();
     let alignment_strategy_stringifier =
         AlignmentStrategyStringifyer::from_statistics_files(&statistics_files);
+
+    if let Some(runtime_memory_csv) = cli.runtime_memory_csv.as_ref() {
+        info!("Creating runtime memory CSV at {runtime_memory_csv:?}");
+        let runtime_memory_csv = BufWriter::new(File::create(runtime_memory_csv).unwrap());
+        output_runtime_memory_csv(&statistics_files, runtime_memory_csv);
+    }
 
     if cli.tsalign {
         info!("Reporting tsalign");
