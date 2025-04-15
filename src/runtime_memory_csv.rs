@@ -15,10 +15,7 @@ pub fn output_runtime_memory_csv<'input>(
         (
             "runtime_seconds",
             Box::new(|statistics_file: &StatisticsFile| {
-                format!(
-                    "{}",
-                    statistics_file.statistics.statistics().duration_seconds
-                )
+                format!("{}", statistics_file.statistics.statistics().runtime)
             }),
         ),
         (
