@@ -93,9 +93,9 @@ checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
 name = "clap"
-version = "4.5.34"
+version = "4.5.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e958897981290da2a852763fe9cdb89cd36977a5d729023127095fa94d95e2ff"
+checksum = "2df961d8c8a0d08aa9945718ccf584145eee3f3aa06cddbeac12933781102e04"
 dependencies = [
  "clap_builder",
  "clap_derive",
@@ -103,9 +103,9 @@ dependencies = [
 
 [[package]]
 name = "clap_builder"
-version = "4.5.34"
+version = "4.5.36"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83b0f35019843db2160b5bb19ae09b4e6411ac33fc6a712003c33e03090e2489"
+checksum = "132dbda40fb6753878316a489d5a1242a8ef2f0d9e47ba01c951ea8aa7d013a5"
 dependencies = [
  "anstream",
  "anstyle",
@@ -168,9 +168,9 @@ dependencies = [
 
 [[package]]
 name = "deterministic_default_hasher"
-version = "0.14.0"
+version = "0.14.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1e0895c3a43c48d617e160fa56c763104b6f515a7746dff6ec5ac09ee559864c"
+checksum = "ae65f7e8e3580cb22a297790831a22567a52ddcf8a5367e70991512ec1d01716"
 
 [[package]]
 name = "either"
@@ -186,9 +186,9 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "extend_map"
-version = "0.14.0"
+version = "0.14.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f8b9b0112be0e978a6bb95f29542296ed82acc0c099e4e392609313742e8c193"
+checksum = "06de5c8c44e2cbb75a9f774649a260445586d7be8d4cf24256d4505aa2f88952"
 
 [[package]]
 name = "funty"
@@ -198,9 +198,9 @@ checksum = "e6d5a32815ae3f33302d95fdcb2ce17862f8c65363dcfd29360480ba1001fc9c"
 
 [[package]]
 name = "generic_a_star"
-version = "0.14.0"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0b3ee7f994ca92ccbe9cf8f92130569a3d921c011bac41ce7dd61c92ec3ae065"
+checksum = "d640c4c4db3738d7cab90edb53721704daaa6ab43a94c13b144277f91dd05f4a"
 dependencies = [
  "binary-heap-plus",
  "deterministic_default_hasher",
@@ -269,9 +269,9 @@ checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 
 [[package]]
 name = "lib_tsalign"
-version = "0.14.0"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "96f542a96da5e37e86b44884d8eea69b4766924c2437eefbda5d72fcfdcdc344"
+checksum = "7ea5c80a13c4ebf8f7c81e87e02ac5dcc6dc884f4059d8cee581fa91f2378e58"
 dependencies = [
  "binary-heap-plus",
  "compact-genome",
@@ -504,9 +504,9 @@ checksum = "eded382c5f5f786b989652c49544c4877d9f015cc22e145a5ea8ea66c2921cd2"
 
 [[package]]
 name = "seed_chain"
-version = "0.14.0"
+version = "0.14.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0d4b1212e89bb29cf52430f58722d59e8420b707218fd2ff16d63693084c1cd1"
+checksum = "0bf145df1983d454b369bd7f9e62dff3bfe71e25e1fdbada7ef828984379dbae"
 dependencies = [
  "compact-genome",
  "generic_a_star",
