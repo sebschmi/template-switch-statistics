@@ -92,19 +92,6 @@ fn main() {
         })
         .collect();
 
-    for statistics_file in &statistics_files {
-        if statistics_file.parameters.seed == 387 {
-            info!(
-                "ari-387 {} ts amount: {}",
-                statistics_file.parameters.aligner,
-                statistics_file
-                    .statistics
-                    .statistics()
-                    .template_switch_amount
-            );
-        }
-    }
-
     let all_statistics_files_amount = statistics_files.len();
     let alignment_strategy_stringifier =
         AlignmentStrategyStringifyer::from_statistics_files(&statistics_files);
