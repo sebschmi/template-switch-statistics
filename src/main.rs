@@ -160,28 +160,33 @@ fn main() {
 
     if cli.ari_email {
         info!("Reporting ari email");
-        let rq_ranges: BTreeSet<_> = statistics_files
+        let paramater_sets: BTreeSet<_> = statistics_files
             .iter()
-            .map(|statistics_file| &statistics_file.parameters.rq_range)
+            .map(|statistics_file| {
+                (
+                    &statistics_file.parameters.rq_range,
+                    &statistics_file.parameters.cost_limit,
+                    &statistics_file.parameters.memory_limit,
+                )
+            })
             .collect();
 
-        for rq_range in rq_ranges {
+        for (rq_range, cost_limit, memory_limit) in &paramater_sets {
             let statistics_files: Vec<_> = statistics_files
                 .iter()
                 .filter(|file| {
                     (file.parameters.strategies.is_ari_email() || file.parameters.aligner == "fpa")
                         && file.parameters.test_sequence_name == "ari_email"
-                        && &file.parameters.rq_range == rq_range
+                        && &&file.parameters.rq_range == rq_range
+                        && &&file.parameters.cost_limit == cost_limit
+                        && &&file.parameters.memory_limit == memory_limit
                 })
                 .cloned()
                 .collect();
-            if all_statistics_files_amount != statistics_files.len() {
-                warn!("Dropping some statistics files for ari email report.");
-            }
 
             grouped_linear_bar_plot(
                 &cli.output_directory,
-                format!("runtime-{rq_range}"),
+                format!("runtime-{rq_range}-c{cost_limit}-m{memory_limit}"),
                 "All",
                 "Runtime [s]",
                 (400, 400),
@@ -204,7 +209,7 @@ fn main() {
 
             grouped_linear_bar_plot(
                 &cli.output_directory,
-                format!("memory-{rq_range}"),
+                format!("memory-{rq_range}-c{cost_limit}-m{memory_limit}"),
                 "All",
                 "Peak RAM [MiB]",
                 (400, 400),
@@ -227,7 +232,7 @@ fn main() {
 
             grouped_linear_bar_plot(
                 &cli.output_directory,
-                format!("ts_amount_boxplot-{rq_range}"),
+                format!("ts_amount_boxplot-{rq_range}-c{cost_limit}-m{memory_limit}"),
                 "All",
                 "Template Switch Amount",
                 (400, 400),
@@ -250,7 +255,7 @@ fn main() {
 
             grouped_histogram(
                 &cli.output_directory,
-                format!("ts_amount_histogram-{rq_range}"),
+                format!("ts_amount_histogram-{rq_range}-c{cost_limit}-m{memory_limit}"),
                 "Template Switch Amount",
                 (400, 400),
                 &statistics_files,

@@ -40,6 +40,8 @@ pub struct AlignmentParameters {
     #[serde(default)]
     pub alignment_config: String,
     pub rq_range: String,
+    pub cost_limit: String,
+    pub memory_limit: String,
 
     pub runtime_raw: Vec<String>,
     /// Memory in kibibytes.

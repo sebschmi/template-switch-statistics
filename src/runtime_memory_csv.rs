@@ -17,6 +17,14 @@ pub fn output_runtime_memory_csv<'input>(
             Box::new(|statistics_file| statistics_file.parameters.rq_range.clone()),
         ),
         (
+            "cost_limit",
+            Box::new(|statistics_file| statistics_file.parameters.cost_limit.clone()),
+        ),
+        (
+            "memory_limit",
+            Box::new(|statistics_file| statistics_file.parameters.memory_limit.clone()),
+        ),
+        (
             "runtime_seconds",
             Box::new(|statistics_file| {
                 format!("{}", statistics_file.statistics.statistics().runtime)
