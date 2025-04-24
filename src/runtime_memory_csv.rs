@@ -38,7 +38,15 @@ pub fn output_runtime_memory_csv<'input>(
         ),
         (
             "ts_amount",
-            Box::new(|statistics_file| format!("{}", statistics_file.template_switch_amount)),
+            Box::new(|statistics_file| {
+                format!(
+                    "{:.0}",
+                    statistics_file
+                        .statistics
+                        .statistics()
+                        .template_switch_amount
+                )
+            }),
         ),
     ];
 
