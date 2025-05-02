@@ -10,8 +10,8 @@ edition = "2024"
 [dependencies]
 clap = { version = "4.5.37", features = ["derive"] }
 serde = { version = "1.0.218", features = ["derive"] }
-toml = "0.8.20"
-lib_tsalign = { version = "0.14.7", features = ["serde"] }
+toml = "0.8.22"
+lib_tsalign = { version = "0.15.0", features = ["serde"] }
 plotters = { version = "0.3.7", git = "https://github.com/sebschmi/plotters", branch = "master", default-features = false, features = [
     "svg_backend",
     "all_elements",
