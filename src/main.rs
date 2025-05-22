@@ -415,7 +415,7 @@ fn format_value(value: &f64) -> String {
     if value == 0.0 {
         "0".to_string()
     } else if value < 1e3 {
-        format!("{:.0}", value)
+        format!("{value:.0}")
     } else if value < 1e4 {
         format!("{:.2}k", value / 1e3)
     } else if value < 1e5 {
