@@ -80,20 +80,6 @@ impl AlignmentStrategyStringifyer {
     }
 }
 
-impl AlignmentStrategies {
-    pub fn is_ari_email(&self) -> bool {
-        self.map
-            .get(&AlignmentStrategyName::NodeOrd)
-            .map(String::as_str)
-            == Some("anti-diagonal")
-            && self
-                .map
-                .get(&AlignmentStrategyName::TsMinLength)
-                .map(String::as_str)
-                == Some("lookahead")
-    }
-}
-
 impl Ord for AlignmentStrategies {
     fn cmp(&self, other: &Self) -> std::cmp::Ordering {
         for name in AlignmentStrategyName::iter() {
