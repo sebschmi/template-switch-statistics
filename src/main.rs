@@ -50,10 +50,6 @@ struct Cli {
     /// Compute tsalign statistics.
     #[arg(long)]
     tsalign: bool,
-
-    /// Compute ari email statistics.
-    #[arg(long)]
-    ari_email: bool,
 }
 
 fn main() {
