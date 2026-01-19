@@ -1,7 +1,7 @@
 use std::{
     collections::BTreeMap,
     fs::File,
-    io::{BufWriter, Read},
+    io::{BufRead, BufReader, BufWriter, Read},
     path::{Path, PathBuf},
 };
 
@@ -43,6 +43,12 @@ struct Cli {
     #[arg()]
     statistics_files: Vec<PathBuf>,
 
+    /// A file containing a list of statistics files to process.
+    ///
+    /// Each line in the file should be a path to a tsalign statistics toml file.
+    #[arg(long)]
+    input_file_of_files: Option<PathBuf>,
+
     /// Set the log level.
     #[arg(long, default_value = "info")]
     log_level: LevelFilter,
@@ -63,7 +69,7 @@ fn main() {
     )
     .unwrap();
 
-    if cli.statistics_files.is_empty() {
+    if cli.statistics_files.is_empty() && cli.input_file_of_files.is_none() {
         panic!("No statistics files given.");
     }
     if cli.key_bucket_amount == Some(0) {
@@ -74,18 +80,41 @@ fn main() {
     }
 
     let mut buffer = String::new();
-    let statistics_files: Vec<_> = cli
-        .statistics_files
-        .into_iter()
-        .map(|path| {
-            let mut file = File::open(&path).unwrap();
-            buffer.clear();
-            file.read_to_string(&mut buffer).unwrap();
-            toml::from_str::<StatisticsFile>(&buffer)
-                .unwrap_or_else(|error| panic!("Error parsing toml file {path:?}: {error}"))
-                .deserialisation_post_processing()
-        })
-        .collect();
+    let statistics_files: Vec<_> =
+        if let Some(input_file_of_files) = cli.input_file_of_files.as_ref() {
+            let input_file_of_files = BufReader::new(File::open(input_file_of_files).unwrap());
+            input_file_of_files
+                .lines()
+                .filter_map(|statistics_file| {
+                    let statistics_file = statistics_file.unwrap();
+                    if statistics_file.is_empty() {
+                        return None;
+                    }
+                    let mut file = File::open(&statistics_file).unwrap();
+                    buffer.clear();
+                    file.read_to_string(&mut buffer).unwrap();
+                    Some(
+                        toml::from_str::<StatisticsFile>(&buffer)
+                            .unwrap_or_else(|error| {
+                                panic!("Error parsing toml file {statistics_file:?}: {error}")
+                            })
+                            .deserialisation_post_processing(),
+                    )
+                })
+                .collect()
+        } else {
+            cli.statistics_files
+                .into_iter()
+                .map(|path| {
+                    let mut file = File::open(&path).unwrap();
+                    buffer.clear();
+                    file.read_to_string(&mut buffer).unwrap();
+                    toml::from_str::<StatisticsFile>(&buffer)
+                        .unwrap_or_else(|error| panic!("Error parsing toml file {path:?}: {error}"))
+                        .deserialisation_post_processing()
+                })
+                .collect()
+        };
 
     let all_statistics_files_amount = statistics_files.len();
     let alignment_strategy_stringifier =
