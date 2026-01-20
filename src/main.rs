@@ -86,11 +86,13 @@ fn main() {
             input_file_of_files
                 .lines()
                 .filter_map(|statistics_file| {
-                    let statistics_file = statistics_file.unwrap();
+                    let statistics_file = statistics_file.unwrap().trim().to_string();
                     if statistics_file.is_empty() {
                         return None;
                     }
-                    let mut file = File::open(&statistics_file).unwrap();
+                    let mut file = File::open(&statistics_file).unwrap_or_else(|error| {
+                        panic!("Failed to open file: {}; {error}", statistics_file)
+                    });
                     buffer.clear();
                     file.read_to_string(&mut buffer).unwrap();
                     Some(
