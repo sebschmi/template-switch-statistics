@@ -13,6 +13,10 @@ pub fn output_runtime_memory_csv<'input>(
             Box::new(|statistics_file| statistics_file.parameters.aligner.clone()),
         ),
         (
+            "alignment_method",
+            Box::new(|statistics_file| statistics_file.parameters.alignment_method.clone()),
+        ),
+        (
             "rq_range",
             Box::new(|statistics_file| statistics_file.parameters.rq_range.clone()),
         ),

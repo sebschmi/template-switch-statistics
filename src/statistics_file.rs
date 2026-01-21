@@ -33,6 +33,7 @@ fn default_statistics() -> AlignmentResult<AlignmentType, U64Cost> {
 pub struct AlignmentParameters {
     pub test_sequence_name: String,
     pub aligner: String,
+    pub alignment_method: String,
     pub length: usize,
     #[serde(skip)]
     pub cost: u64,
