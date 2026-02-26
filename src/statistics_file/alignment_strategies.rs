@@ -2,6 +2,7 @@ use std::{
     collections::{HashMap, HashSet},
     fmt::{Display, Write},
     hash::Hash,
+    ops::Index,
 };
 
 use serde::{Deserialize, Serialize};
@@ -15,6 +16,18 @@ pub struct AlignmentStrategiesSerde {
     ts_node_ord_strategy: String,
     #[serde(default)]
     ts_min_length_strategy: String,
+    #[serde(default)]
+    ts_total_length_strategy: String,
+    #[serde(default)]
+    k: String,
+    #[serde(default)]
+    max_chaining_successors: String,
+    #[serde(default)]
+    max_exact_cost_function_cost: String,
+    #[serde(default)]
+    chaining_closed_list: String,
+    #[serde(default)]
+    chaining_open_list: String,
 }
 
 #[derive(Debug, Clone, Default, Eq, PartialEq, Serialize, Deserialize)]
@@ -27,6 +40,12 @@ pub struct AlignmentStrategies {
 pub enum AlignmentStrategyName {
     NodeOrd,
     TsMinLength,
+    TsTotalLength,
+    K,
+    MaxChainingSuccessors,
+    MaxExactCostFunctionCost,
+    ChainingClosedList,
+    ChainingOpenList,
 }
 
 pub struct AlignmentStrategyStringifyer {
@@ -114,6 +133,16 @@ impl From<AlignmentStrategies> for AlignmentStrategiesSerde {
         Self {
             ts_node_ord_strategy: value.map.get(&NodeOrd).cloned().unwrap(),
             ts_min_length_strategy: value.map.get(&TsMinLength).cloned().unwrap(),
+            ts_total_length_strategy: value.map.get(&TsTotalLength).cloned().unwrap(),
+            k: value.map.get(&K).cloned().unwrap(),
+            max_chaining_successors: value.map.get(&MaxChainingSuccessors).cloned().unwrap(),
+            max_exact_cost_function_cost: value
+                .map
+                .get(&MaxExactCostFunctionCost)
+                .cloned()
+                .unwrap(),
+            chaining_closed_list: value.map.get(&ChainingClosedList).cloned().unwrap(),
+            chaining_open_list: value.map.get(&ChainingOpenList).cloned().unwrap(),
         }
     }
 }
@@ -124,11 +153,23 @@ impl From<AlignmentStrategiesSerde> for AlignmentStrategies {
         let AlignmentStrategiesSerde {
             ts_node_ord_strategy,
             ts_min_length_strategy,
+            ts_total_length_strategy,
+            k,
+            max_chaining_successors,
+            max_exact_cost_function_cost,
+            chaining_closed_list,
+            chaining_open_list,
         } = value;
         Self {
             map: [
                 (NodeOrd, ts_node_ord_strategy),
                 (TsMinLength, ts_min_length_strategy),
+                (TsTotalLength, ts_total_length_strategy),
+                (K, k),
+                (MaxChainingSuccessors, max_chaining_successors),
+                (MaxExactCostFunctionCost, max_exact_cost_function_cost),
+                (ChainingClosedList, chaining_closed_list),
+                (ChainingOpenList, chaining_open_list),
             ]
             .into(),
         }
@@ -140,6 +181,22 @@ impl Display for AlignmentStrategyName {
         match self {
             AlignmentStrategyName::NodeOrd => write!(f, "node_ord"),
             AlignmentStrategyName::TsMinLength => write!(f, "ts_min_len"),
+            AlignmentStrategyName::TsTotalLength => write!(f, "ts_total_len"),
+            AlignmentStrategyName::K => write!(f, "k"),
+            AlignmentStrategyName::MaxChainingSuccessors => write!(f, "max_chaining_successors"),
+            AlignmentStrategyName::MaxExactCostFunctionCost => {
+                write!(f, "max_exact_cost_function_cost")
+            }
+            AlignmentStrategyName::ChainingClosedList => write!(f, "chaining_closed_list"),
+            AlignmentStrategyName::ChainingOpenList => write!(f, "chaining_open_list"),
         }
+    }
+}
+
+impl Index<AlignmentStrategyName> for AlignmentStrategies {
+    type Output = String;
+
+    fn index(&self, index: AlignmentStrategyName) -> &Self::Output {
+        self.map.get(&index).unwrap()
     }
 }

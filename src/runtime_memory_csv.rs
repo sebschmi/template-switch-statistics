@@ -1,6 +1,6 @@
 use std::io::Write;
 
-use crate::statistics_file::StatisticsFile;
+use crate::statistics_file::{StatisticsFile, alignment_strategies::AlignmentStrategyName};
 
 pub fn output_runtime_memory_csv<'input>(
     statistics_files: impl IntoIterator<Item = &'input StatisticsFile>,
@@ -15,6 +15,59 @@ pub fn output_runtime_memory_csv<'input>(
         (
             "alignment_method",
             Box::new(|statistics_file| statistics_file.parameters.alignment_method.clone()),
+        ),
+        (
+            "ts_node_ord_strategy",
+            Box::new(|statistics_file| {
+                statistics_file.parameters.strategies[AlignmentStrategyName::NodeOrd].clone()
+            }),
+        ),
+        (
+            "ts_min_length_strategy",
+            Box::new(|statistics_file| {
+                statistics_file.parameters.strategies[AlignmentStrategyName::TsMinLength].clone()
+            }),
+        ),
+        (
+            "ts_total_length_strategy",
+            Box::new(|statistics_file| {
+                statistics_file.parameters.strategies[AlignmentStrategyName::TsTotalLength].clone()
+            }),
+        ),
+        (
+            "k",
+            Box::new(|statistics_file| {
+                statistics_file.parameters.strategies[AlignmentStrategyName::K].clone()
+            }),
+        ),
+        (
+            "max_chaining_successors",
+            Box::new(|statistics_file| {
+                statistics_file.parameters.strategies[AlignmentStrategyName::MaxChainingSuccessors]
+                    .clone()
+            }),
+        ),
+        (
+            "max_exact_cost_function_cost",
+            Box::new(|statistics_file| {
+                statistics_file.parameters.strategies
+                    [AlignmentStrategyName::MaxExactCostFunctionCost]
+                    .clone()
+            }),
+        ),
+        (
+            "chaining_closed_list",
+            Box::new(|statistics_file| {
+                statistics_file.parameters.strategies[AlignmentStrategyName::ChainingClosedList]
+                    .clone()
+            }),
+        ),
+        (
+            "chaining_open_list",
+            Box::new(|statistics_file| {
+                statistics_file.parameters.strategies[AlignmentStrategyName::ChainingOpenList]
+                    .clone()
+            }),
         ),
         (
             "rq_range",
