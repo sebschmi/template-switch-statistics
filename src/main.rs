@@ -387,9 +387,7 @@ fn merge_and_sort_files_in_groups<GroupName: Ord>(
             let bucket_index = key_bucket_amount.map(|key_bucket_amount| {
                 let key = key_fn(&file.parameters);
                 let bucket_index = (key - min_key) * key_bucket_amount as f64 / (max_key - min_key);
-                (bucket_index.floor() as usize)
-                    .max(0)
-                    .min(key_bucket_amount - 1)
+                (bucket_index.max(0.0).floor() as usize).min(key_bucket_amount - 1)
             });
 
             let merge_key = (merge_key_fn(&file), bucket_index);
