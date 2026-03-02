@@ -98,6 +98,10 @@ pub fn output_runtime_memory_csv<'input>(
             }),
         ),
         (
+            "cost",
+            Box::new(|statistics_file| format!("{}", statistics_file.statistics.statistics().cost)),
+        ),
+        (
             "ts_amount",
             Box::new(|statistics_file| {
                 format!(
