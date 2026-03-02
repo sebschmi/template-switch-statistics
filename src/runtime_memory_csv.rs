@@ -17,6 +17,10 @@ pub fn output_runtime_memory_csv<'input>(
             Box::new(|statistics_file| statistics_file.parameters.alignment_method.clone()),
         ),
         (
+            "seed",
+            Box::new(|statistics_file| format!("{}", statistics_file.parameters.seed)),
+        ),
+        (
             "ts_node_ord_strategy",
             Box::new(|statistics_file| {
                 statistics_file.parameters.strategies[AlignmentStrategyName::NodeOrd].clone()
