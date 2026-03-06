@@ -9,6 +9,10 @@ pub fn output_runtime_memory_csv<'input>(
     #[expect(clippy::type_complexity)]
     let columns: &[(_, Box<dyn Fn(&StatisticsFile) -> String>)] = &[
         (
+            "test_sequence_name",
+            Box::new(|statistics_file| statistics_file.parameters.test_sequence_name.clone()),
+        ),
+        (
             "aligner",
             Box::new(|statistics_file| statistics_file.parameters.aligner.clone()),
         ),
