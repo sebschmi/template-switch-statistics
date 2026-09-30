@@ -21,6 +21,10 @@ pub struct AlignmentStrategiesSerde {
     #[serde(default)]
     k: String,
     #[serde(default)]
+    max_anchor_mutations: String,
+    #[serde(default)]
+    inexact_chaining_lower_bound: String,
+    #[serde(default)]
     max_chaining_successors: String,
     #[serde(default)]
     max_exact_cost_function_cost: String,
@@ -42,6 +46,8 @@ pub enum AlignmentStrategyName {
     TsMinLength,
     TsTotalLength,
     K,
+    MaxAnchorMutations,
+    InexactChainingLowerBound,
     MaxChainingSuccessors,
     MaxExactCostFunctionCost,
     ChainingClosedList,
@@ -135,6 +141,12 @@ impl From<AlignmentStrategies> for AlignmentStrategiesSerde {
             ts_min_length_strategy: value.map.get(&TsMinLength).cloned().unwrap(),
             ts_total_length_strategy: value.map.get(&TsTotalLength).cloned().unwrap(),
             k: value.map.get(&K).cloned().unwrap(),
+            max_anchor_mutations: value.map.get(&MaxAnchorMutations).cloned().unwrap(),
+            inexact_chaining_lower_bound: value
+                .map
+                .get(&InexactChainingLowerBound)
+                .cloned()
+                .unwrap(),
             max_chaining_successors: value.map.get(&MaxChainingSuccessors).cloned().unwrap(),
             max_exact_cost_function_cost: value
                 .map
@@ -155,6 +167,8 @@ impl From<AlignmentStrategiesSerde> for AlignmentStrategies {
             ts_min_length_strategy,
             ts_total_length_strategy,
             k,
+            max_anchor_mutations,
+            inexact_chaining_lower_bound,
             max_chaining_successors,
             max_exact_cost_function_cost,
             chaining_closed_list,
@@ -166,6 +180,8 @@ impl From<AlignmentStrategiesSerde> for AlignmentStrategies {
                 (TsMinLength, ts_min_length_strategy),
                 (TsTotalLength, ts_total_length_strategy),
                 (K, k),
+                (MaxAnchorMutations, max_anchor_mutations),
+                (InexactChainingLowerBound, inexact_chaining_lower_bound),
                 (MaxChainingSuccessors, max_chaining_successors),
                 (MaxExactCostFunctionCost, max_exact_cost_function_cost),
                 (ChainingClosedList, chaining_closed_list),
@@ -183,6 +199,10 @@ impl Display for AlignmentStrategyName {
             AlignmentStrategyName::TsMinLength => write!(f, "ts_min_len"),
             AlignmentStrategyName::TsTotalLength => write!(f, "ts_total_len"),
             AlignmentStrategyName::K => write!(f, "k"),
+            AlignmentStrategyName::MaxAnchorMutations => write!(f, "max_anchor_mutations"),
+            AlignmentStrategyName::InexactChainingLowerBound => {
+                write!(f, "inexact_chaining_lower_bound")
+            }
             AlignmentStrategyName::MaxChainingSuccessors => write!(f, "max_chaining_successors"),
             AlignmentStrategyName::MaxExactCostFunctionCost => {
                 write!(f, "max_exact_cost_function_cost")
